@@ -29,9 +29,8 @@ SESSION=sapper-cmd
 CMD_HOME="$ROOT/commander-home"
 WATCHDOG=/opt/sapper/docker/commander/watchdog.sh
 
-# ---- 1. required env (platform + model gateway) ----------------------------
-[[ -n "${BENCHMARK_BASE_URL:-}" ]] || die "BENCHMARK_BASE_URL is not set"
-[[ -n "${BENCHMARK_TOKEN:-}" ]] || die "BENCHMARK_TOKEN is not set"
+# ---- 1. required env (model gateway; platform preflight removed with the
+#      arena bridge - nopper has no competition platform) ------------------
 : "${ANTHROPIC_BASE_URL:?set ANTHROPIC_BASE_URL}"
 : "${ANTHROPIC_AUTH_TOKEN:?set ANTHROPIC_AUTH_TOKEN}"
 export ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN
@@ -59,16 +58,9 @@ d.setdefault("projects", {})[sys.argv[1]] = {
 json.dump(d, open(path, "w"))
 PYTRUST
 
-# ---- 4. preflight: platform reachability + GLM smoke -----------------------
-log "platform = $BENCHMARK_BASE_URL"
-log "gateway  = $ANTHROPIC_BASE_URL"
+# ---- 4. preflight: model gateway smoke (platform reachability removed) -----
+log "gateway  = ${ANTHROPIC_BASE_URL:-unset}"
 log "model    = $MODEL (commander architecture, watchdog budget ${TOTAL_MIN}min)"
-case "$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 \
-        -H "BENCHMARK_TOKEN: $BENCHMARK_TOKEN" \
-        "$BENCHMARK_BASE_URL/openapi/v1/challenges" || true)" in
-  2*) log "platform reachable" ;;
-  *)  die "cannot reach $BENCHMARK_BASE_URL/openapi/v1/challenges (check BENCHMARK_TOKEN / gateway)" ;;
-esac
 
 log "model CLI smoke test…"
 if ! printf 'reply with the single word: ok' \

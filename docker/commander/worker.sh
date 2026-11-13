@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # worker.sh v1 — the commander's hands: one-shot subcommands, no main loop.
 #
-# Failure modes handled:
-#   - platform "max active" cap (HTTP 409)  -> detected on arena start, friendly
-#     PLATFORM CAP message + exit 3; every arena call is guarded so a 409 never
+#   - platform cap handling removed with the arena bridge (nopper has no
+#     competition platform; exit code 3 is no longer produced here)
 #     crashes the caller (inherited trap: "arena HTTP 409 must never crash")
 #   - worker pane cap                       -> live window count vs
 #     SAPPER_MAX_WORKERS enforced before any platform call, exit 4 WORKER CAP
@@ -16,8 +15,8 @@
 #     "echo DRIVE_PANE_EXITED; exec sleep infinity" (list/board/watchdog read it)
 #   - same-cwd --continue cross-talk        -> one dir per agent; -w2+ mounts the
 #     shared graph via a .sapper symlink instead of a second graph
-#   - instance active but panes all dead    -> container addrs persisted to
-#     ROOT/<code>/.addrs and reused when arena start refuses/duplicates
+#   - addrs file kept for output compatibility only (no platform in nopper;
+#     spawn no longer writes ROOT/<code>/.addrs)
 #   - rotated gateway keys (watchdog)       -> spawn syncs the tmux SESSION env so
 #     new panes inherit the CURRENT key, not the server-startup key (tmux only
 #     copies update-environment vars from the client — ANTHROPIC_* is not in it)
@@ -57,65 +56,13 @@ die() { local rc=$1; shift; printf '[worker] ERROR: %s\n' "$*" >&2; exit "$rc"; 
 is_code() { [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9_.:-]*$ ]]; }
 window_exists() { tmux list-windows -t "$SESSION" -F '#W' 2>/dev/null | grep -qx -- "$1"; }
 
-# ---- arena helper (verbatim from tmux-drive.sh; module path env-overridable
-#      for host-side testing — in-image default is identical) ------------------
-arena() {
-  python3 - "$@" <<'PYEOF2'
-import importlib.util, json, os, sys
-spec = importlib.util.spec_from_file_location(
-    "arena", os.environ.get("SAPPER_ARENA_LIB", "/opt/sapper/lib/arena.py"))
-m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
-c = m.ArenaClient.load(None)
-op = sys.argv[1]
-if op == "list":
-    print(json.dumps(c.list_challenges()))
-elif op == "start":
-    print(json.dumps(c.start_challenge(sys.argv[2])))
-elif op == "close":
-    print(json.dumps(c.close_challenge(sys.argv[2])))
-PYEOF2
+# ---- findings ledger stub (flag/arena submission removed with the platform
+#      bridge; nopper finding ledger + hwctl own experiment closing) --------
+finish_flags() {  # finish_flags <code> - kept for call-site compatibility
+  local code=$1
+  log "finish_flags: no submission target (arena removed) - findings stay as recorded facts for $code"
 }
 
-# submit every recorded-unsubmitted flag fact in a challenge's graph
-# (verbatim from tmux-drive.sh; module path env-overridable as above)
-finish_flags() {  # finish_flags <code>
-  python3 - "$1" <<'PYFIN'
-import glob, json, os, sys, importlib.util
-code = sys.argv[1]
-root = os.environ.get("SAPPER_ROOT", "/work/runs")
-spec = importlib.util.spec_from_file_location(
-    "arena", os.environ.get("SAPPER_ARENA_LIB", "/opt/sapper/lib/arena.py"))
-m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
-try:
-    client = m.ArenaClient.load(None)
-except Exception as exc:
-    print(f"[finish] {code}: no arena ({exc})"); sys.exit(0)
-for path in sorted(glob.glob(f"{root}/{code}/.sapper/facts/*.json")):
-    try:
-        fact = json.load(open(path))
-    except Exception:
-        continue
-    if fact.get("kind") != "flag":
-        continue
-    data = fact.get("data") or {}
-    if data.get("status") not in (None, "recorded") or not data.get("value"):
-        continue
-    try:
-        r = client.submit_flag(code, data["value"])
-        fact["data"]["status"] = "submitted" if r.get("correct") else "rejected"
-        json.dump(fact, open(path, "w"), ensure_ascii=False, indent=2)
-        print(f"[finish] {code}: submit {data['value'][:24]}… correct={r.get('correct')}")
-    except Exception as exc:
-        msg = str(exc)
-        if "already" in msg.lower() or "409" in msg:
-            # duplicate submit = the flag WAS accepted earlier: absorb it
-            fact["data"]["status"] = "submitted"
-            json.dump(fact, open(path, "w"), ensure_ascii=False, indent=2)
-            print(f"[finish] {code}: already submitted — marked ({data['value'][:20]}…)")
-        else:
-            print(f"[finish] {code}: submit failed ({exc})")
-PYFIN
-}
 
 # ---- pane primitives (verbatim from tmux-drive.sh) ---------------------------
 pane_text() { tmux capture-pane -pt "$SESSION:$1" 2>/dev/null; }
@@ -159,9 +106,7 @@ sync_session_env() {  # tmux new-window inherits the SESSION environment, not th
                       # rotated by the watchdog reaches freshly spawned panes;
                       # PATH so the panes see the same tooling as the commander.
   local k v
-  for k in PATH ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN SAPPER_MODEL \
-           SAPPER_MODEL_FLASH BENCHMARK_BASE_URL BENCHMARK_TOKEN; do
-    v=${!k:-}
+  for k in PATH ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN SAPPER_MODEL SAPPER_MODEL_FLASH; do
     [[ -n "$v" ]] && tmux set-environment -t "$SESSION" "$k" "$v" >/dev/null 2>&1 || true
   done
 }
@@ -226,16 +171,10 @@ write_hint() {  # write_hint <code> <text> — appends a [commander]-prefixed hi
   printf 'HINT %s -> %s\n' "$hid" "$code"
 }
 
-close_instance() {  # close_instance <code> — finish_challenge pattern: flags first,
-                    # then arena close (guarded: a 409/HTTP error never crashes)
+close_instance() {  # close_instance <code> - no platform in nopper: findings stay
   local code=$1
-  log "$code: submitting recorded flags before close"
+  log "$code: no platform instance to close (arena removed)"
   finish_flags "$code" 2>&1 | tee -a "$LOG" >&2 || true
-  if arena close "$code" >/dev/null 2>&1; then
-    log "$code: platform instance closed"
-  else
-    log "$code: arena close failed (instance may already be closed) — continuing"
-  fi
   rm -f "$ROOT/$code/.addrs"
 }
 
@@ -330,33 +269,8 @@ cmd_spawn() {
   (( max == 0 )) && primary=1
   (( primary )) || dir="$ROOT/${code}-w${ordinal}"
 
-  # 1) platform instance — only when this code has no live pane and no known addrs
-  local addrs="" started="" got="" err
-  [[ -f "$ROOT/$code/.addrs" ]] && addrs=$(cat "$ROOT/$code/.addrs" 2>/dev/null)
-  if (( ! primary )) && [[ -n "$addrs" ]]; then
-    :  # instance already up (shared with w1) — do not re-start, just reuse addrs
-  else
-    err=$(mktemp)
-    started=$(arena start "$code" 2>"$err" || true)
-    got=$(printf '%s' "$started" | python3 -c '
-import json,sys
-try: print(" ".join(json.load(sys.stdin).get("container_addr") or []))
-except Exception: pass' 2>/dev/null)
-    if [[ -n "$got" ]]; then
-      addrs=$got
-      printf '%s\n' "$addrs" > "$ROOT/$code/.addrs"
-    elif grep -qi "max active" "$err" 2>/dev/null; then
-      rm -f "$err"
-      die 3 "PLATFORM CAP: close a challenge first (worker.sh kill <code> --close) — cannot start $code"
-    elif [[ -z "$addrs" ]]; then
-      local e; e=$(tail -n 3 "$err" 2>/dev/null | tr '\n' ' ')
-      rm -f "$err"
-      die 1 "spawn: arena start failed for $code: ${e:-no container_addr returned}"
-    else
-      log "$code: arena start refused but persisted addrs look valid — reusing instance"
-    fi
-    rm -f "$err"
-  fi
+  # 1) no platform in nopper - no instance acquisition; addrs stay empty
+  local addrs=""
 
   # 2) dirs + shared graph
   if (( primary )); then
@@ -544,7 +458,7 @@ cmd_board() {
   done
   local arena_tmp pane_tmp rc
   arena_tmp=$(mktemp); pane_tmp=$(mktemp)
-  arena list > "$arena_tmp" 2>/dev/null || printf '[]\n' > "$arena_tmp"
+printf '[]\n' > "$arena_tmp"   # (nopper: no platform; board shows graphs/panes only)
   collect_panes > "$pane_tmp" || true
   python3 - "$arena_tmp" "$pane_tmp" "$ROOT" "$MAX_WORKERS" "$as_json" <<'PYBOARD'
 import glob, json, os, re, sys, time

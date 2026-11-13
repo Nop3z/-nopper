@@ -15,8 +15,8 @@
 #      max 3/pane (restarts map), budget-independent. -p worker exit = normal
 #      completion: pane left for the commander (peek + worker.sh kill).
 #   6. global deadline (SAPPER_TOTAL_MINUTES from script start) -> C-c all
-#      worker panes, finish_flags for EVERY code with a graph, arena close
-#      every open instance, log summary, exit 0 (failsafe finish when the
+#      worker panes, finish_flags (stub: findings stay recorded) for EVERY
+#      code with a graph, log summary, exit 0 (failsafe finish when the
 #      commander is dead at the buzzer).
 #   7. worker TUI stall -> deliberately NOTHING (nudging is the commander's job).
 #
@@ -50,22 +50,6 @@ NOW() { date +%s; }
 
 declare -A mode restarts enter_tries mission_restarts last_activity placeholder_since cooldown_log
 
-# ---- arena helper (verbatim from tmux-drive.sh) ------------------------------
-arena() {
-  python3 - "$@" <<'PYEOF2'
-import importlib.util, json, sys
-spec = importlib.util.spec_from_file_location("arena", "/opt/sapper/lib/arena.py")
-m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
-c = m.ArenaClient.load(None)
-op = sys.argv[1]
-if op == "list":
-    print(json.dumps(c.list_challenges()))
-elif op == "start":
-    print(json.dumps(c.start_challenge(sys.argv[2])))
-elif op == "close":
-    print(json.dumps(c.close_challenge(sys.argv[2])))
-PYEOF2
-}
 
 # ---- key-pool rotation ------------------------------------------------------
 # SAPPER_KEY_POOL: JSON [{base_url,token,model},...]. On quota/balance/auth
@@ -181,43 +165,10 @@ QUOTA_RE='insufficient|balance|quota|exceeded|billing|payment|401|[Uu]nauthorize
 # cause of the 17:36 storm: per-minute limits were misread as a dead key)
 RATELIMIT_RE='每分钟|分钟级|rate.?limit|too many requests|429|1302|1311|1305' 
 
-# submit every recorded-unsubmitted flag fact in a challenge's graph (verbatim)
-finish_flags() {  # finish_flags <code>
-  python3 - "$1" <<'PYFIN'
-import glob, json, os, sys, importlib.util
-code = sys.argv[1]
-root = os.environ.get("SAPPER_ROOT", "/work/runs")
-spec = importlib.util.spec_from_file_location("arena", "/opt/sapper/lib/arena.py")
-m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
-try:
-    client = m.ArenaClient.load(None)
-except Exception as exc:
-    print(f"[finish] {code}: no arena ({exc})"); sys.exit(0)
-for path in sorted(glob.glob(f"{root}/{code}/.sapper/facts/*.json")):
-    try:
-        fact = json.load(open(path))
-    except Exception:
-        continue
-    if fact.get("kind") != "flag":
-        continue
-    data = fact.get("data") or {}
-    if data.get("status") not in (None, "recorded") or not data.get("value"):
-        continue
-    try:
-        r = client.submit_flag(code, data["value"])
-        fact["data"]["status"] = "submitted" if r.get("correct") else "rejected"
-        json.dump(fact, open(path, "w"), ensure_ascii=False, indent=2)
-        print(f"[finish] {code}: submit {data['value'][:24]}… correct={r.get('correct')}")
-    except Exception as exc:
-        msg = str(exc)
-        if "already" in msg.lower() or "409" in msg:
-            # duplicate submit = the flag WAS accepted earlier: absorb it
-            fact["data"]["status"] = "submitted"
-            json.dump(fact, open(path, "w"), ensure_ascii=False, indent=2)
-            print(f"[finish] {code}: already submitted — marked ({data['value'][:20]}…)")
-        else:
-            print(f"[finish] {code}: submit failed ({exc})")
-PYFIN
+# findings ledger stub (flag/arena submission removed with the platform bridge)
+finish_flags() {  # finish_flags <code> - kept for call-site compatibility
+  local code=$1
+  log "finish_flags: no submission target (arena removed) - findings stay as recorded facts for $code"
 }
 
 # ---- trust preset (PYTRUST + settings.json, from tmux-drive.sh launch()) ----
@@ -267,9 +218,7 @@ sync_session_env() {  # tmux panes inherit the SESSION environment, NOT this
                       # relaunched pane boots claude on the stale dead key and
                       # re-triggers the quota error forever.
   local k v
-  for k in PATH ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN SAPPER_MODEL \
-           SAPPER_MODEL_FLASH BENCHMARK_BASE_URL BENCHMARK_TOKEN; do
-    v=${!k:-}
+  for k in PATH ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN SAPPER_MODEL SAPPER_MODEL_FLASH; do
     [[ -n "$v" ]] && tmux set-environment -t "$SESSION" "$k" "$v" >/dev/null 2>&1 || true
   done
 }
@@ -441,19 +390,7 @@ finish_all() {  # SPEC unit 2 #6 — global deadline failsafe
     log "$code: deadline finish_flags"
     finish_flags "$code" 2>&1 | tee -a "$LOG"
   done
-  # close every open platform instance (409/other errors must never crash us)
-  for code in $(arena list 2>>"$LOG" | python3 -c '
-import json,sys
-try: items=json.load(sys.stdin)
-except Exception: sys.exit(0)
-for c in items:
-    if isinstance(c,dict) and not c.get("is_completed"): print(c["unique_code"])' 2>/dev/null); do
-    if arena close "$code" >/dev/null 2>&1; then
-      log "$code: instance closed"; n_closed=$((n_closed+1))
-    else
-      log "$code: instance close failed (ignored)"
-    fi
-  done
+# (nopper: no platform instances to close - arena bridge removed)
   log "watchdog complete: graphs_finished=$n_codes instances_closed=$n_closed model=$MODEL"
   exit 0
 }
@@ -466,8 +403,7 @@ except Exception: print(0)' 2>/dev/null || echo 0)
 log "watchdog start: root=$ROOT session=$SESSION cmd_home=$CMD_HOME"
 printf '%s\n' "$END_AT" > "$ROOT/.deadline"   # board reads this: budget_left heartbeat
 log "env: model=$MODEL total=${TOTAL_MIN}m max_workers=$MAX_WORKERS stall=${STALL_SECONDS}s(informational) keys=$keys"
-log "env: benchmark=${BENCHMARK_BASE_URL:-unset} gateway=${ANTHROPIC_BASE_URL:-unset} deadline=$(date -d "@$END_AT" '+%F %T' 2>/dev/null || echo "in ${TOTAL_MIN}m")"
-
+log "env: gateway=${ANTHROPIC_BASE_URL:-unset} deadline=$(date -d "@$END_AT" '+%F %T' 2>/dev/null || echo "in ${TOTAL_MIN}m")"
 # family-initial credentials: what relaunch_pane falls back to before any rotation
 GLM_BASE_URL_INITIAL="${ANTHROPIC_BASE_URL:-}"
 GLM_TOKEN_INITIAL="${ANTHROPIC_AUTH_TOKEN:-}"

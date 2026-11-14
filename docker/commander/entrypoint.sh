@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # entrypoint.sh — commander-architecture container start (unit 4).
 #
-# Brings up tmux session 'sapper-cmd' (window 0 = 'commander'), starts the
+# Brings up tmux session 'nopper-cmd' (window 0 = 'commander'), starts the
 # watchdog guardian in the background, boots the claude commander TUI and
 # injects its bootstrap prompt, then stays in the foreground so the container
 # lives exactly as long as the campaign does.
@@ -18,16 +18,16 @@
 #   - invisible logs                             -> drive.log is tailed to stdout (docker logs)
 set -uo pipefail
 
-log() { printf '[sapper-cmd] %s\n' "$*"; }
-die() { printf '[sapper-cmd] FATAL: %s\n' "$*" >&2; exit 1; }
+log() { printf '[nopper-cmd] %s\n' "$*"; }
+die() { printf '[nopper-cmd] FATAL: %s\n' "$*" >&2; exit 1; }
 
-ROOT="${SAPPER_ROOT:-/work/runs}"
+ROOT="${NOPPER_ROOT:-/work/runs}"
 LOG="$ROOT/drive.log"
-MODEL="${SAPPER_MODEL:-glm-5.3[1m]}"   # commander brain: SMART tier
-TOTAL_MIN="${SAPPER_TOTAL_MINUTES:-470}"
-SESSION=sapper-cmd
+MODEL="${NOPPER_MODEL:-glm-5.3[1m]}"   # commander brain: SMART tier
+TOTAL_MIN="${NOPPER_TOTAL_MINUTES:-470}"
+SESSION=nopper-cmd
 CMD_HOME="$ROOT/commander-home"
-WATCHDOG=/opt/sapper/docker/commander/watchdog.sh
+WATCHDOG=/opt/nopper/docker/commander/watchdog.sh
 
 # ---- 1. required env (model gateway; platform preflight removed with the
 #      arena bridge - nopper has no competition platform) ------------------
@@ -114,7 +114,7 @@ done
 printf '%s' "$pane" | grep -q '❯' || log "WARNING: commander input box never appeared (watchdog will retry)"
 
 # ---- 7. bootstrap prompt ---------------------------------------------------
-bootstrap="You are the autonomous field commander of a pentest campaign (TSecBench). Read /opt/sapper/docker/commander/SKILL.md and follow it exactly. First read $ROOT/commander-state.md if it exists — it is your handover from a previous incarnation; if it does not exist, start commanding from scratch. Then run the SKILL.md loop immediately (worker.sh board -> think -> act -> sleep 60-120 -> repeat) until the deadline. Work fully autonomously, never ask questions. Begin now."
+bootstrap="You are the autonomous field commander of a hardware-experiment campaign. Read /opt/nopper/docker/commander/SKILL.md and follow it exactly. First read $ROOT/commander-state.md if it exists — it is your handover from a previous incarnation; if it does not exist, start commanding from scratch. Then run the SKILL.md loop immediately (worker.sh board -> think -> act -> sleep 60-120 -> repeat) until the deadline. Work fully autonomously, never ask questions. Begin now."
 if printf '%s' "$pane" | grep -q '❯'; then
   send_literal commander "$bootstrap"
   sleep 3

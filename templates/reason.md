@@ -45,8 +45,8 @@ If Goal is not satisfied and new intents should be proposed:
 
 Each node has THREE documentation layers — use them correctly:
 - **`title`** (REQUIRED) — a short (2–10 字) human-readable label in the SAME language as the goal (中文 goal → 中文 title). Concrete: "端口扫描", "后台弱口令", "RCE已验证", "内网横向". Never repeat the description verbatim.
-- **`description`** (REQUIRED) — a ONE-sentence gist. Shown in `sapper graph` and injected into every prompt. Keep it tight.
-- **`doc`** (OPTIONAL) — detailed markdown for the executor: exact commands, tool names + fallbacks, expected evidence, what NOT to touch. Read via `sapper doc <id>` only when needed. Use it for exploitation playbooks.
+- **`description`** (REQUIRED) — a ONE-sentence gist. Shown in `nopper graph` and injected into every prompt. Keep it tight.
+- **`doc`** (OPTIONAL) — detailed markdown for the executor: exact commands, tool names + fallbacks, expected evidence, what NOT to touch. Read via `nopper doc <id>` only when needed. Use it for exploitation playbooks.
 
 `requires_confirmation` is optional (default false). In an isolated CTF-style
 target environment it should almost never be true; reserve it for genuinely
@@ -83,14 +83,14 @@ Reject only when execution would be clearly inappropriate:
   ...), state the evidence the executor should produce, and set a practical
   timebox in the doc (e.g. "if not exploitable in ~10 min, record and stop").
   When the next step is a known technique/CVE class, point the executor at
-  the knowledge base: `sapper kb search "<keywords>"`.
+  the knowledge base: `nopper kb search "<keywords>"`.
 - Scope discipline: only the target IPs/hosts given by the platform. Never
   propose attacking the platform API itself, scoring infrastructure, or
   other teams' machines.
 - Do not invent results. If evidence is missing, propose an intent to get it.
 - **Reuse prior work.** Before proposing a NEW intent, check whether the
   Graph already contains a similar prior fact/intent (titles + descriptions
-  in the Graph block; `sapper recall "<gist>"` + `sapper doc <id>` are the
+  in the Graph block; `nopper recall "<gist>"` + `nopper doc <id>` are the
   canonical recall path). If a prior node already covers the same step, do
   NOT propose a duplicate — build on its produced fact or extend it (cite
   the prior id in your description).

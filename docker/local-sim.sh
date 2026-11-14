@@ -2,14 +2,14 @@
 # local-sim.sh — full local-mode simulation of the TSecBench hosted run.
 #
 # Boots the mock platform (exact /openapi/v1/challenges contract) plus a
-# vulnerable target on the HOST, then runs the sapper-agent container with
+# vulnerable target on the HOST, then runs the nopper-agent container with
 # --network host so the container reaches both. The container uses the REAL
 # model gateway (Zhipu anthropic-compatible) and must autonomously:
 #   list -> start -> solve via command injection -> capture 2 flags -> submit
 #
-# Usage: bash docker/local-sim.sh [image]     (default sapper-agent:kali)
+# Usage: bash docker/local-sim.sh [image]     (default nopper-agent:kali)
 set -uo pipefail
-IMAGE="${1:-sapper-agent:kali}"
+IMAGE="${1:-nopper-agent:kali}"
 MOCK="${MOCK:-/tmp/mock_bench.py}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -25,14 +25,14 @@ echo "platform=$PLATFORM target=${TARGET:-multi($TARGET_M)}"
 [[ -n "$PLATFORM" ]] || { echo "mock failed to start"; cat /tmp/mock_sim.log; exit 1; }
 
 echo "== running $IMAGE (real GLM engine, 12-minute budget) =="
-docker run --rm --name sapper-sim --network host \
+docker run --rm --name nopper-sim --network host \
   -e BENCHMARK_BASE_URL="$PLATFORM" \
   -e BENCHMARK_TOKEN=mock-token \
   -e ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-https://open.bigmodel.cn/api/anthropic}" \
   -e ANTHROPIC_AUTH_TOKEN="${ANTHROPIC_AUTH_TOKEN:?set ANTHROPIC_AUTH_TOKEN to the Zhipu key}" \
-  -e SAPPER_MODEL="${SAPPER_MODEL:-glm-5.3-flash}" \
-  -e SAPPER_TOTAL_MINUTES="${SAPPER_TOTAL_MINUTES:-12}" \
-  -e SAPPER_MINUTES_PER_CHALLENGE="${SAPPER_MINUTES_PER_CHALLENGE:-6}" \
+  -e NOPPER_MODEL="${NOPPER_MODEL:-glm-5.3-flash}" \
+  -e NOPPER_TOTAL_MINUTES="${NOPPER_TOTAL_MINUTES:-12}" \
+  -e NOPPER_MINUTES_PER_CHALLENGE="${NOPPER_MINUTES_PER_CHALLENGE:-6}" \
   "$IMAGE" 2>&1 | tee /tmp/sim-run.log
 
 # report BEFORE the EXIT trap kills the mock platform; nested quotes in a

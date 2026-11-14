@@ -3,6 +3,6 @@ dist
 tests
 *.pyc
 __pycache__
-.sapper
+.nopper
 runs
 fleet.json

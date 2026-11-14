@@ -5,7 +5,7 @@
 #     competition platform; exit code 3 is no longer produced here)
 #     crashes the caller (inherited trap: "arena HTTP 409 must never crash")
 #   - worker pane cap                       -> live window count vs
-#     SAPPER_MAX_WORKERS enforced before any platform call, exit 4 WORKER CAP
+#     NOPPER_MAX_WORKERS enforced before any platform call, exit 4 WORKER CAP
 #   - trust/bypass/permission dialogs       -> per-project hasTrustDialogAccepted
 #     preset + Down+Enter auto-accept while waiting for the input box
 #   - bracketed paste breaks ink TUIs       -> send-keys -l ONLY, never
@@ -14,17 +14,17 @@
 #   - pane death detection                  -> every worker window ends with
 #     "echo DRIVE_PANE_EXITED; exec sleep infinity" (list/board/watchdog read it)
 #   - same-cwd --continue cross-talk        -> one dir per agent; -w2+ mounts the
-#     shared graph via a .sapper symlink instead of a second graph
+#     shared graph via a .nopper symlink instead of a second graph
 #   - addrs file kept for output compatibility only (no platform in nopper;
 #     spawn no longer writes ROOT/<code>/.addrs)
 #   - rotated gateway keys (watchdog)       -> spawn syncs the tmux SESSION env so
 #     new panes inherit the CURRENT key, not the server-startup key (tmux only
 #     copies update-environment vars from the client — ANTHROPIC_* is not in it)
 #   - repeated calls                        -> idempotent: kill-window before
-#     create, guarded sapper init, next free -wN index derived from live panes
+#     create, guarded nopper init, next free -wN index derived from live panes
 set -o pipefail
 
-ROOT="${SAPPER_ROOT:-/work/runs}"
+ROOT="${NOPPER_ROOT:-/work/runs}"
 LOG="$ROOT/drive.log"
 # Model tiers & gateways (SKILL 4.9, final doctrine): ALL-IN FLAGSHIP.
 #   glm gw + SMART (glm-5.3[1m]) is the default brain for EVERY worker — soldier,
@@ -33,18 +33,18 @@ LOG="$ROOT/drive.log"
 #   rate limits bite (the watchdog rotates; the commander may also spawn
 #   --gw ds deliberately under quota pressure).
 # mixed doctrine: soldiers default to the ds tier (cheap mass), generals and
-# the commander run SAPPER_MODEL (the strong brain) — the general-escalation
+# the commander run NOPPER_MODEL (the strong brain) — the general-escalation
 # below fires when model==MODEL, which holds for this default.
-# NOTE: inline SAPPER_MODEL_DS (DS_MODEL is defined LATER in this header —
+# NOTE: inline NOPPER_MODEL_DS (DS_MODEL is defined LATER in this header —
 # referencing it here silently fell back to glm and killed the ds army).
-MODEL="${SAPPER_MODEL_DS:-${SAPPER_MODEL:-glm-5.3[1m]}}"
-DS_MODEL="${SAPPER_MODEL_DS:-deepseek-flash}"
+MODEL="${NOPPER_MODEL_DS:-${NOPPER_MODEL:-glm-5.3[1m]}}"
+DS_MODEL="${NOPPER_MODEL_DS:-deepseek-flash}"
 DS_BASE_URL="${DEEPSEEK_BASE_URL:-https://api.deepseek.com/anthropic}"
 DS_KEY="${DEEPSEEK_API_KEY:-}"
-SESSION=sapper-cmd
-MAX_WORKERS="${SAPPER_MAX_WORKERS:-8}"
+SESSION=nopper-cmd
+MAX_WORKERS="${NOPPER_MAX_WORKERS:-8}"
 DEF_MINUTES=10
-SAPPER="${SAPPER_BIN:-sapper}"
+NOPPER="${NOPPER_BIN:-nopper}"
 ACT_FILE="$ROOT/.worker-activity.tsv"
 PANE_ENV_DIR="$ROOT/pane-env"
 NOW() { date +%s; }
@@ -107,7 +107,7 @@ sync_session_env() {  # tmux new-window inherits the SESSION environment, not th
                       # rotated by the watchdog reaches freshly spawned panes;
                       # PATH so the panes see the same tooling as the commander.
   local k v
-  for k in PATH ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN SAPPER_MODEL SAPPER_MODEL_FLASH; do
+  for k in PATH ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN NOPPER_MODEL NOPPER_MODEL_FLASH; do
     [[ -n "$v" ]] && tmux set-environment -t "$SESSION" "$k" "$v" >/dev/null 2>&1 || true
   done
 }
@@ -155,19 +155,19 @@ json.dump(d, open(path, "w"))
 PYTRUST
 }
 
-ensure_graph() {  # ensure_graph <code> — guarded sapper init in the primary dir
+ensure_graph() {  # ensure_graph <code> — guarded nopper init in the primary dir
   local code=$1
-  [[ -f "$ROOT/$code/.sapper/project.json" ]] && return 0
+  [[ -f "$ROOT/$code/.nopper/project.json" ]] && return 0
   mkdir -p "$ROOT/$code"
-  # $SAPPER is intentionally unquoted: SAPPER_BIN may carry its own args
-  (cd "$ROOT/$code" && $SAPPER init --goal "solve $code, capture all flags" >/dev/null 2>&1 || true)
+  # $NOPPER is intentionally unquoted: NOPPER_BIN may carry its own args
+  (cd "$ROOT/$code" && $NOPPER init --goal "experiment $code: characterize the target and record findings" >/dev/null 2>&1 || true)
 }
 
 write_hint() {  # write_hint <code> <text> — appends a [commander]-prefixed hint fact
-  local code=$1 text=$2 store="$ROOT/$1/.sapper" hid
+  local code=$1 text=$2 store="$ROOT/$1/.nopper" hid
   ensure_graph "$code"
-  hid=$($SAPPER --store "$store" hint "[commander] $text" --creator commander 2>&1) \
-    || die 1 "hint: sapper hint failed for $code: $hid"
+  hid=$($NOPPER --store "$store" hint "[commander] $text" --creator commander 2>&1) \
+    || die 1 "hint: nopper hint failed for $code: $hid"
   log "hint -> $code: $hid (${text:0:50})"
   printf 'HINT %s -> %s\n' "$hid" "$code"
 }
@@ -181,14 +181,14 @@ close_instance() {  # close_instance <code> - no platform in nopper: findings st
 
 general_mission() {  # general_mission <code> <addrs> — smart worker allowed to hire -p squads
   local code=$1 addrs=$2
-  printf '%s' "You are a GENERAL (senior operator) on challenge $code. Think DEEPLY — you have the biggest brain on this challenge, use it: plan the full attack chain before executing, reason step by step. Targets: ${addrs}. You solve the challenge yourself AND you may hire one-shot squads for bounded chores: run /opt/sapper/docker/commander/worker.sh spawn $code --p --minutes 5 --mission \"<chore: recon sweep / verify a guess / fuzz one endpoint>\" — the squad runs ~5 min, prints results in its pane, then goes idle: peek its pane (worker.sh peek <pane> 120), harvest, and kill it (worker.sh kill <pane>). Squads share this challenge's fact graph — tell them to read it first. Caps: panes are limited (a spawn failing with exit 4 means wait or fire a squad); keep at most 2 squads at a time; never let a squad idle long after it finishes. Record findings as facts, capture EVERY flag and IMMEDIATELY run sapper flag \"flag{...}\" -c $code --submit. Communication with your commander: [HELP]/[REPORT] notes in the graph as usual. Work fully autonomously; reply DONE only when the challenge is finished. Flag submission: primary is sapper flag VALUE -c $code --submit; if that command errors, submit by direct POST to the platform endpoint $BENCHMARK_BASE_URL/openapi/v1/challenges/submit with a JSON body containing unique_code and flag fields plus header BENCHMARK_TOKEN from env — write the one-liner yourself with urllib or curl; both routes count."
+  printf '%s' "You are a GENERAL (senior analyst) on experiment $code. Think DEEPLY — you have the biggest brain on this experiment, use it: plan the full analysis chain before executing, reason step by step. Targets: ${addrs}. You solve the experiment yourself AND you may hire one-shot squads for bounded chores: run /opt/nopper/docker/commander/worker.sh spawn $code --p --minutes 5 --mission \"<chore: interface sweep / extract one firmware region / verify a guess>\" — the squad runs ~5 min, prints results in its pane, then goes idle: peek its pane (worker.sh peek <pane> 120), harvest, and kill it (worker.sh kill <pane>). Squads share this experiment's fact graph — tell them to read it first. Caps: panes are limited (a spawn failing with exit 4 means wait or fire a squad); keep at most 2 squads at a time; never let a squad idle long after it finishes. Record findings as facts, record EVERY observed result and IMMEDIATELY run nopper finding \"<result token>\" -c $code. Communication with your commander: [HELP]/[REPORT] notes in the graph as usual. Work fully autonomously; reply DONE only when the experiment is finished."
 }
 
 default_mission() {  # default_mission <code> <addrs> <primary 0|1>
                      # operator prompt carried over from tmux-drive.sh launch()
   local code=$1 addrs=$2 primary=$3 extra=""
-  (( ! primary )) && extra=" Another agent is also working $code from a sibling directory — you SHARE one fact graph: read the existing facts before repeating work, and record every new finding with sapper fact so your partner sees it."
-  printf '%s' "You are an autonomous pentest operator in a CTF benchmark. Think DEEPLY before acting: plan multi-step exploits carefully, reason about what each command's output tells you before the next one — depth of thought is your main weapon. Challenge: $code. Target container addresses (reach them directly): ${addrs}. Mission: recon the target, find the vulnerabilities, capture EVERY flag, and for each flag IMMEDIATELY run: sapper flag \"flag{...}\" -c $code --submit  (this submits to the scoring platform and prints the result). Record findings as typed facts: sapper fact \"...\" -k service -d host=... -d port=...  Consult the knowledge base when unsure: sapper kb search \"keywords\". Multiple flags are likely — after one submission keep hunting the rest. Communication: your commander reads this challenge's fact graph every ~2 minutes — to reach it, record a fact: sapper fact \"[HELP] <exactly what you tried, what blocks you, what decision you need>\" -k note (only when GENUINELY blocked, max one open HELP at a time; keep working alternatives while waiting) or \"[REPORT] <significant intel>\" -k note (interesting findings your commander may relay to other challenges). Do not wait idle for replies. When totally done, reply with the single word DONE.$extra"
+  (( ! primary )) && extra=" Another agent is also working $code from a sibling directory — you SHARE one fact graph: read the existing facts before repeating work, and record every new finding with nopper fact so your partner sees it."
+  printf '%s' "You are an autonomous experiment operator in a nopper hardware-research fleet. Think DEEPLY before acting: plan multi-step measurements carefully, reason about what each command's output tells you before the next one — depth of thought is your main weapon. Experiment: $code. Rig/bench addresses (reach them directly): ${addrs}. Mission: characterize the target (device/chip/board/interface facts), extract or analyze what the intent asks for, record EVERY observed result, and for each success IMMEDIATELY run: nopper finding \"<result token>\" -c $code  (this records the result in the finding ledger crash-safe). Record findings as typed facts: nopper fact \"...\" -k interface -d chip=... -d pins=...  Consult the knowledge base when unsure: nopper kb search \"keywords\". Multiple results are likely — after one success keep hunting the rest of the intent. Communication: your commander reads this experiment's fact graph every ~2 minutes — to reach it, record a fact: nopper fact \"[HELP] <exactly what you tried, what blocks you, what decision you need>\" -k analysis_note (only when GENUINELY blocked, max one open HELP at a time; keep working alternatives while waiting) or \"[REPORT] <significant intel>\" -k analysis_note (interesting findings your commander may relay to other experiments). Do not wait idle for replies. When totally done, reply with the single word DONE.$extra"
 }
 
 # ---- spawn -------------------------------------------------------------------
@@ -227,7 +227,7 @@ cmd_spawn() {
   # and silently never match.
   [[ -n "$model" ]] || { [[ "$gw" == ds ]] && model="$DS_MODEL" || model="$MODEL"; }
   if (( general )) && [[ "$gw" == glm && "$model" == "$MODEL" ]]; then
-    model="${SAPPER_MODEL:-glm-5.3[1m]}"
+    model="${NOPPER_MODEL:-glm-5.3[1m]}"
   fi
   # gateway auto-derives from the FINAL model's family (mixed doctrine: the
   # default soldier model is deepseek — its name on the glm gateway 404s,
@@ -280,7 +280,7 @@ cmd_spawn() {
   else
     ensure_graph "$code"
     mkdir -p "$dir"
-    ln -sfn "../$code/.sapper" "$dir/.sapper"
+    ln -sfn "../$code/.nopper" "$dir/.nopper"
   fi
   # 3) trust preset
   trust_preset "$dir"
@@ -322,7 +322,7 @@ cmd_spawn() {
       return 0
     else
       tmux new-window -d -t "$SESSION" -n "$pane" \
-        "cd $dir && $gw_env SAPPER_MODEL='$model' $SAPPER --store $ROOT/$code/.sapper auto --minutes $minutes --skip-permissions 2>&1; echo DRIVE_PANE_EXITED; exec sleep infinity"
+        "cd $dir && $gw_env NOPPER_MODEL='$model' $NOPPER --store $ROOT/$code/.nopper auto --minutes $minutes --skip-permissions 2>&1; echo DRIVE_PANE_EXITED; exec sleep infinity"
     fi
   fi
 
@@ -362,7 +362,7 @@ cmd_spawn() {
   else
     sleep 2
     if printf '%s' "$(pane_text "$pane")" | grep -q 'DRIVE_PANE_EXITED'; then
-      die 1 "spawn: $pane -p command exited immediately — check the sapper invocation in the pane"
+      die 1 "spawn: $pane -p command exited immediately — check the nopper invocation in the pane"
     fi
     [[ -n "$mission" ]] && write_hint "$code" "$mission"
     log "$pane: -p worker spawned (dir=$dir, minutes=$minutes)"
@@ -409,7 +409,7 @@ cmd_kill() {
   if (( close )); then
     local left; left=$(panes_for_code "$code")
     if [[ -n "$left" ]]; then
-      log "$code: sibling panes still alive ($left) — instance kept open, flags not touched"
+      log "$code: sibling panes still alive ($left) — instance kept open, findings not touched"
       return 0
     fi
     close_instance "$code"
@@ -486,16 +486,16 @@ for c in (load_json(arena_path, []) or []):
 
 # -- graphs (dedupe -wN symlinked graphs by realpath; never trust file contents)
 graphs = {}
-for pj in sorted(glob.glob(os.path.join(root, "*", ".sapper", "project.json"))):
+for pj in sorted(glob.glob(os.path.join(root, "*", ".nopper", "project.json"))):
     d = os.path.dirname(os.path.dirname(pj))
     code = re.sub(r"-w\d+$", "", os.path.basename(d))
-    key = os.path.realpath(os.path.join(d, ".sapper"))
+    key = os.path.realpath(os.path.join(d, ".nopper"))
     if key in graphs:
         continue
     kinds, latest, total = {}, 0.0, 0
-    flags = {"recorded": 0, "submitted": 0}
+    findings = {"observed": 0, "confirmed": 0, "rejected": 0}
     helps = 0
-    for fp in glob.glob(os.path.join(d, ".sapper", "facts", "*.json")):
+    for fp in glob.glob(os.path.join(d, ".nopper", "facts", "*.json")):
         total += 1
         try:
             f = json.load(open(fp))
@@ -505,13 +505,15 @@ for pj in sorted(glob.glob(os.path.join(root, "*", ".sapper", "project.json"))):
         k = f.get("kind")
         if k:
             kinds[k] = kinds.get(k, 0) + 1
-            if k == "flag":
-                st = (f.get("data") or {}).get("status") or "recorded"
-                flags[st] = flags.get(st, 0) + 1
-            if k == "note" and "[HELP]" in str(f.get("description", "")) + str(f.get("data") or ""):
+            if k == "glitch_result" and "status" in (f.get("data") or {}):
+                # ledger-created findings carry the lifecycle status; plain
+                # glitch_result facts from dispatch never do
+                st = (f.get("data") or {}).get("status") or "observed"
+                findings[st] = findings.get(st, 0) + 1
+            if k == "analysis_note" and "[HELP]" in str(f.get("description", "")) + str(f.get("data") or ""):
                 helps += 1
     intents = {"open": 0, "claimed": 0, "done": 0, "complete": 0}
-    for ip in glob.glob(os.path.join(d, ".sapper", "intents", "*.json")):
+    for ip in glob.glob(os.path.join(d, ".nopper", "intents", "*.json")):
         try:
             st = json.load(open(ip)).get("status")
         except Exception:
@@ -519,8 +521,9 @@ for pj in sorted(glob.glob(os.path.join(root, "*", ".sapper", "project.json"))):
         if st in intents:
             intents[st] += 1
     graphs[key] = {"code": code, "facts_total": total, "kinds": kinds,
-                   "flags_recorded": flags["recorded"],
-                   "flags_submitted": flags["submitted"],
+                   "findings_observed": findings["observed"],
+                   "findings_confirmed": findings["confirmed"],
+                   "findings_rejected": findings["rejected"],
                    "intents": intents, "latest_mtime": latest, "helps": helps}
 
 by_code = {}
@@ -554,8 +557,9 @@ for c in codes:
         "facts_total": g.get("facts_total", 0),
         "kinds": g.get("kinds", {}),
         "intents": g.get("intents", {}),
-        "flags_recorded": g.get("flags_recorded", 0),
-        "flags_submitted": g.get("flags_submitted", 0),
+        "findings_observed": g.get("findings_observed", 0),
+        "findings_confirmed": g.get("findings_confirmed", 0),
+        "findings_rejected": g.get("findings_rejected", 0),
         "helps": g.get("helps", 0),
         "latest": time.strftime("%H:%M", time.localtime(g["latest_mtime"]))
                   if g.get("latest_mtime") else "-",
@@ -570,8 +574,9 @@ if as_json:
 
 # heartbeat to drive.log (=> docker logs): the commander boards every loop,
 # so this line IS the campaign pulse for the outside observer.
-flags_r = sum(r["flags_recorded"] for r in rows)
-flags_s = sum(r["flags_submitted"] for r in rows)
+findings_obs = sum(r["findings_observed"] for r in rows)
+findings_conf = sum(r["findings_confirmed"] for r in rows)
+findings_rej = sum(r["findings_rejected"] for r in rows)
 done_n = sum(1 for r in rows if r["completed"])
 # war clock + general census: the commander's dashboard gauges
 left = "-"
@@ -597,8 +602,9 @@ try:
 except Exception:
     pass
 print(f"[board] heartbeat: codes={len(rows)} done={done_n} "
-      f"alive={alive}/{max_workers} flags_recorded={flags_r} "
-      f"flags_submitted={flags_s} budget_left={left} generals={generals}", file=sys.stderr)
+      f"alive={alive}/{max_workers} findings_observed={findings_obs} "
+      f"findings_confirmed={findings_conf} findings_rejected={findings_rej} "
+      f"budget_left={left} generals={generals}", file=sys.stderr)
 
 def kinds_str(k):
     if not k:
@@ -606,7 +612,7 @@ def kinds_str(k):
     order = ["device", "chip", "board", "interface", "firmware_image",
              "probe_point", "vulnerability", "glitch_param", "glitch_result",
              "scan_campaign", "power_profile", "analysis_note",
-             "repro_confirmed", "flag"]
+             "repro_confirmed"]
     # two-letter kind codes (single letters collide: glitch_param/glitch_result,
     # probe_point/power_profile) — e.g. de1 ch2 gp12 gr3
     parts = [f"{n[:2]}{k[n]}" for n in order if k.get(n)]
@@ -624,8 +630,8 @@ def panes_str(lst):
     return " ".join(out)
 
 widths = [("CODE(⚑=HELP!)", 17), ("DONE", 4), ("FLG", 7), ("FACTS", 6), ("KINDS", 16),
-          ("INT o/c", 8), ("FLG r/s", 7), ("LAST", 5)]
-print(f"== sapper board {time.strftime('%H:%M')}  workers alive={alive}/{max_workers}"
+          ("INT o/c", 8), ("FND c/o/r", 9), ("LAST", 5)]
+print(f"== nopper board {time.strftime('%H:%M')}  workers alive={alive}/{max_workers}"
       f"  codes={len(rows)} ==")
 print(" ".join(t.ljust(w) for t, w in widths) + "PANES")
 budget = 100 - 3  # header + column line + trailing guard
@@ -644,7 +650,7 @@ for i, r in enumerate(rows):
         (str(r["facts_total"]) if r["facts_total"] else "-").ljust(6),
         kinds_str(r["kinds"]).ljust(16),
         f"{r['intents'].get('open', 0)}/{r['intents'].get('claimed', 0)}".ljust(8),
-        f"{r['flags_recorded']}/{r['flags_submitted']}".ljust(7),
+        f"{r['findings_confirmed']}/{r['findings_observed']}/{r['findings_rejected']}".ljust(9),
         r["latest"].ljust(5), panes_str(r["panes"]),
     ]
     print(" ".join(cells).rstrip())
@@ -671,8 +677,9 @@ worker.sh — the commander's hands (one-shot subcommands; no main loop)
                                      'glm-5.3[1m]' — SKILL 4.9 tiering rules)
                                      --general: smart-tier GENERAL that may hire its own
                                      -p squads on the same challenge (SKILL 4.10)
-  kill  <pane>|<code> [--close]      --close submits flags + closes the instance
-                                     only when no sibling pane of that code lives
+  kill  <pane>|<code> [--close]      --close closes the instance (findings stay as
+                                     recorded facts) only when no sibling pane of
+                                     that code lives
   msg   <pane> "<text>"              send-keys -l + Enter (never bracketed paste)
   peek  <pane> [lines=40]
   list                               <pane> alive|exited idle=<s> size=WxH since=<hh:mm>

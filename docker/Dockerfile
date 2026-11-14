@@ -1,4 +1,4 @@
-# sapper agent image for TSecBench hosted mode ( Throne Protocol qualifier ).
+# nopper agent image for TSecBench hosted mode ( Throne Protocol qualifier ).
 #
 # Match rules (2026-10-17/18 online round):
 #   - ONE submission attempt, 8h task limit, 50 challenges / 100 flags
@@ -6,19 +6,19 @@
 #   - no hints; model rate-limits are NOT grounds for a retry
 #   - logs/trace are NOT viewable -> the image must fail loud, never hang
 #
-# Build:  docker build -f docker/Dockerfile -t sapper-agent:latest .
-# Export: bash docker/build.sh          ->  dist/sapper-agent.tar.gz
+# Build:  docker build -f docker/Dockerfile -t nopper-agent:latest .
+# Export: bash docker/build.sh          ->  dist/nopper-agent.tar.gz
 FROM kalilinux/kali-rolling:latest
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PATH="/home/agent/.local/bin:${PATH}" \
     PYTHONUNBUFFERED=1 \
-    SAPPER_MODEL=glm-5.3-flash[1m] \
-    SAPPER_TOTAL_MINUTES=470 \
-    SAPPER_MINUTES_PER_CHALLENGE=9 \
-    SAPPER_MAX_STEPS=10 \
-    SAPPER_RETRY_MODEL=3 \
-    SAPPER_ROOT=/work/runs
+    NOPPER_MODEL=glm-5.3-flash[1m] \
+    NOPPER_TOTAL_MINUTES=470 \
+    NOPPER_MINUTES_PER_CHALLENGE=9 \
+    NOPPER_MAX_STEPS=10 \
+    NOPPER_RETRY_MODEL=3 \
+    NOPPER_ROOT=/work/runs
 
 # --- offensive tooling (kali repo, curated to stay < 3GB) -------------------
 # Pin a reliable mirror: the default http.kali.org redirect can land on
@@ -81,24 +81,24 @@ RUN pip3 install --no-cache-dir --break-system-packages \
 RUN pip3 install --no-cache-dir --break-system-packages gmpy2 z3-solver \
         || echo "WARN: gmpy2/z3 unavailable — continuing without them"
 
-# --- sapper -----------------------------------------------------------------
-COPY lib/        /opt/sapper/lib/
-COPY templates/  /opt/sapper/templates/
-COPY kb/         /opt/sapper/kb/
-COPY README.md LICENSE SKILL.md /opt/sapper/
+# --- nopper -----------------------------------------------------------------
+COPY lib/        /opt/nopper/lib/
+COPY templates/  /opt/nopper/templates/
+COPY kb/         /opt/nopper/kb/
+COPY README.md LICENSE SKILL.md /opt/nopper/
 
 # --- non-root agent user ----------------------------------------------------
 # Claude Code refuses --dangerously-skip-permissions as root; run unprivileged
 # with a writable HOME for the model CLI's state.
 RUN useradd -m -s /bin/bash agent \
     && mkdir -p /home/agent/.local/bin /work/runs \
-    && ln -sf /opt/sapper/lib/sapper.py /home/agent/.local/bin/sapper \
-    && chmod +x /opt/sapper/lib/sapper.py \
-    && chown -R agent:agent /work /opt/sapper /home/agent
+    && ln -sf /opt/nopper/lib/nopper.py /home/agent/.local/bin/nopper \
+    && chmod +x /opt/nopper/lib/nopper.py \
+    && chown -R agent:agent /work /opt/nopper /home/agent
 
-COPY docker/entrypoint.sh /usr/local/bin/sapper-entrypoint
-RUN chmod +x /usr/local/bin/sapper-entrypoint
+COPY docker/entrypoint.sh /usr/local/bin/nopper-entrypoint
+RUN chmod +x /usr/local/bin/nopper-entrypoint
 
 USER agent
 WORKDIR /work
-ENTRYPOINT ["/usr/local/bin/sapper-entrypoint"]
+ENTRYPOINT ["/usr/local/bin/nopper-entrypoint"]

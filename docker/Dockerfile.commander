@@ -2,9 +2,9 @@
 # units (worker.sh / watchdog.sh / SKILL.md) and an entrypoint that boots the
 # AI commander TUI in tmux window 0 and the watchdog guardian behind it.
 #
-# Build:  docker build -f docker/Dockerfile.commander -t sapper-agent:commander .
-#         (requires sapper-agent:tmux to exist locally; context = repo root)
-FROM sapper-agent:tmux
+# Build:  docker build -f docker/Dockerfile.commander -t nopper-agent:commander .
+#         (requires nopper-agent:tmux to exist locally; context = repo root)
+FROM nopper-agent:tmux
 
 USER root
 # Arsenal layer (mounted here instead of the base image so the base stays cached):
@@ -31,23 +31,23 @@ RUN env -u http_proxy -u https_proxy -u HTTP_PROXY -u HTTPS_PROXY \
 # native postinstall scripts without --allow-scripts).
 RUN npm install -g @openai/codex@0.42.0 --allow-scripts --omit=dev 2>/dev/null || \
     npm install -g @openai/codex@0.42.0 2>/dev/null || echo "WARN: codex install failed (claude-only mode)"
-COPY docker/commander/ /opt/sapper/docker/commander/
+COPY docker/commander/ /opt/nopper/docker/commander/
 # kb overlay: this image's kb/ is FRESHER than the base image's (field entries
 # added late) — copy it over so commanders see the latest knowledge
-COPY kb/ /opt/sapper/kb/
+COPY kb/ /opt/nopper/kb/
 # codex provider config (chat wire for DeepSeek) into the agent user's home
 RUN mkdir -p /home/agent/.codex \
-    && cp /opt/sapper/docker/commander/codex-home/config.toml /home/agent/.codex/config.toml \
+    && cp /opt/nopper/docker/commander/codex-home/config.toml /home/agent/.codex/config.toml \
     && chown -R agent:agent /home/agent/.codex
-RUN chmod +x /opt/sapper/docker/commander/worker.sh \
-             /opt/sapper/docker/commander/watchdog.sh \
-             /opt/sapper/docker/commander/entrypoint.sh \
-    && chown -R agent:agent /opt/sapper/docker/commander
+RUN chmod +x /opt/nopper/docker/commander/worker.sh \
+             /opt/nopper/docker/commander/watchdog.sh \
+             /opt/nopper/docker/commander/entrypoint.sh \
+    && chown -R agent:agent /opt/nopper/docker/commander
 USER agent
 
 # factory default: the commander brain is the SMART tier; console env overrides
-# this. Prevents environment drift (a flash SAPPER_MODEL silently neuters
+# this. Prevents environment drift (a flash NOPPER_MODEL silently neuters
 # every --general escalation).
-ENV SAPPER_MODEL=glm-5.3[1m]
+ENV NOPPER_MODEL=glm-5.3[1m]
 
-ENTRYPOINT ["/opt/sapper/docker/commander/entrypoint.sh"]
+ENTRYPOINT ["/opt/nopper/docker/commander/entrypoint.sh"]

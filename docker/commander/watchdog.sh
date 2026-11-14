@@ -14,7 +14,7 @@
 #   5. TUI worker DRIVE_PANE_EXITED -> auto-relaunch with cwd-scoped --continue,
 #      max 3/pane (restarts map), budget-independent. -p worker exit = normal
 #      completion: pane left for the commander (peek + worker.sh kill).
-#   6. global deadline (SAPPER_TOTAL_MINUTES from script start) -> C-c all
+#   6. global deadline (NOPPER_TOTAL_MINUTES from script start) -> C-c all
 #      worker panes, finish_flags (stub: findings stay recorded) for EVERY
 #      code with a graph, log summary, exit 0 (failsafe finish when the
 #      commander is dead at the buzzer).
@@ -26,20 +26,20 @@
 # re-send worker missions — the commander re-briefs amnesiac panes.
 set -o pipefail
 
-ROOT="${SAPPER_ROOT:-/work/runs}"
+ROOT="${NOPPER_ROOT:-/work/runs}"
 LOG="$ROOT/drive.log"
 # Model tiers (SKILL 4.9): the commander runs SMART; each worker keeps the tier
 # it was spawned with (persisted by worker.sh in ROOT/pane-env/<pane>.env).
-CMD_MODEL="${SAPPER_MODEL:-glm-5.3[1m]}"
-FALLBACK_MODEL="${SAPPER_MODEL_FLASH:-glm-5.3-flash[1m]}"
+CMD_MODEL="${NOPPER_MODEL:-glm-5.3[1m]}"
+FALLBACK_MODEL="${NOPPER_MODEL_FLASH:-glm-5.3-flash[1m]}"
 MODEL="$CMD_MODEL"      # legacy var: current relaunch default, updated on rotation
-TOTAL_MIN="${SAPPER_TOTAL_MINUTES:-470}"
-MAX_WORKERS="${SAPPER_MAX_WORKERS:-8}"
-STALL_SECONDS="${SAPPER_STALL_SECONDS:-600}"
-SESSION=sapper-cmd
+TOTAL_MIN="${NOPPER_TOTAL_MINUTES:-470}"
+MAX_WORKERS="${NOPPER_MAX_WORKERS:-8}"
+STALL_SECONDS="${NOPPER_STALL_SECONDS:-600}"
+SESSION=nopper-cmd
 CMD_HOME="$ROOT/commander-home"
 PANE_ENV_DIR="$ROOT/pane-env"
-SKILL_PATH=/opt/sapper/docker/commander/SKILL.md
+SKILL_PATH=/opt/nopper/docker/commander/SKILL.md
 MAX_RESTARTS=3          # per TUI worker pane (SPEC unit 2 #5)
 mkdir -p "$ROOT" "$CMD_HOME" "$PANE_ENV_DIR"
 # stdout only: the entrypoint nohup-redirects us into drive.log (tee here
@@ -52,7 +52,7 @@ declare -A mode restarts enter_tries mission_restarts last_activity placeholder_
 
 
 # ---- key-pool rotation ------------------------------------------------------
-# SAPPER_KEY_POOL: JSON [{base_url,token,model},...]. On quota/balance/auth
+# NOPPER_KEY_POOL: JSON [{base_url,token,model},...]. On quota/balance/auth
 # errors the watchdog rotates its own env; panes relaunched afterwards
 # inherit the new key, and `claude --continue` restores the prior session.
 # STORM GUARD (live incident 17:36-18:22): with every pool key dead the
@@ -78,7 +78,7 @@ rotation_allowed() {
 rotate_key() {
   python3 - <<'PYROT'
 import json, os
-raw = os.environ.get("SAPPER_KEY_POOL", "").strip()
+raw = os.environ.get("NOPPER_KEY_POOL", "").strip()
 try:
     pool = [p for p in json.loads(raw) if isinstance(p, dict) and p.get("token")]
 except Exception:
@@ -100,7 +100,7 @@ if cur_fam is None:  # main key not in pool: classify by its base_url
 # is skipped, so two dead glm keys bounce K1<->K2 forever instead of crossing
 # to deepseek. All tried -> quiet stop; the window clears in an hour.
 import time
-root = os.environ.get("SAPPER_ROOT", "/work/runs")
+root = os.environ.get("NOPPER_ROOT", "/work/runs")
 tried_path = root + "/.rotated-tried.txt"
 now = time.time()
 tried = []
@@ -123,13 +123,13 @@ if not cands:
 if not cands:
     raise SystemExit(1)  # everything tried this hour: quiet stop
 nxt = cands[0]
-model = nxt.get("model") or os.environ.get("SAPPER_MODEL", "")
+model = nxt.get("model") or os.environ.get("NOPPER_MODEL", "")
 base = nxt.get("base_url") or os.environ.get("ANTHROPIC_BASE_URL", "")
-root = os.environ.get("SAPPER_ROOT", "/work/runs")
+root = os.environ.get("NOPPER_ROOT", "/work/runs")
 with open(root + "/rotated.env", "w") as fh:  # global (commander follows this)
     fh.write(f'export ANTHROPIC_BASE_URL="{base}"\n'
              f'export ANTHROPIC_AUTH_TOKEN="{nxt["token"]}"\n'
-             f'export SAPPER_MODEL="{model}"\n')
+             f'export NOPPER_MODEL="{model}"\n')
 with open(f"{root}/rotated-{fam(nxt)}.env", "w") as fh:  # per-family current creds
     fh.write(f'ANTHROPIC_BASE_URL={base}\nANTHROPIC_AUTH_TOKEN={nxt["token"]}\nMODEL={model}\n')
 if cur and any(e["token"] == cur for e in pool):
@@ -142,18 +142,18 @@ PYROT
     LAST_ROTATE=$(NOW); ROTATIONS_THIS_HOUR=$((ROTATIONS_THIS_HOUR + 1))
     local old_url="$ANTHROPIC_BASE_URL"
     # shellcheck disable=SC1090
-    . "$ROOT/rotated.env"; export ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN SAPPER_MODEL
-    MODEL="${SAPPER_MODEL:-$MODEL}"   # watchdog addition: relaunches must pick up the rotated model
+    . "$ROOT/rotated.env"; export ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN NOPPER_MODEL
+    MODEL="${NOPPER_MODEL:-$MODEL}"   # watchdog addition: relaunches must pick up the rotated model
     if [[ -n "$old_url" && "$old_url" != "$ANTHROPIC_BASE_URL" ]]; then
       # cross-family rotation (e.g. glm exhausted -> deepseek). Do NOT rewrite
       # every pane-env: a glm pane flung onto the deepseek endpoint with a glm
       # model id crashes instantly and re-triggers rotation (the 19:04 storm).
       # glm panes keep their identity and simply ride the rotation cooldown;
       # the commander can re-dispatch them on --gw ds if it chooses.
-      CMD_MODEL="${SAPPER_MODEL:-$CMD_MODEL}"   # commander relaunches must answer on the new provider too
+      CMD_MODEL="${NOPPER_MODEL:-$CMD_MODEL}"   # commander relaunches must answer on the new provider too
       log "key rotated cross-family -> $ANTHROPIC_BASE_URL (commander follows; glm panes keep glm creds)"
     else
-      log "key rotated -> $ANTHROPIC_BASE_URL (model $SAPPER_MODEL)"
+      log "key rotated -> $ANTHROPIC_BASE_URL (model $NOPPER_MODEL)"
     fi
     return 0
   fi
@@ -220,12 +220,12 @@ sync_session_env() {  # tmux panes inherit the SESSION environment, NOT this
                       # relaunched pane boots claude on the stale dead key and
                       # re-triggers the quota error forever.
   local k v
-  for k in PATH ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN SAPPER_MODEL SAPPER_MODEL_FLASH; do
+  for k in PATH ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN NOPPER_MODEL NOPPER_MODEL_FLASH; do
     [[ -n "$v" ]] && tmux set-environment -t "$SESSION" "$k" "$v" >/dev/null 2>&1 || true
   done
 }
 
-DS_MODEL="${SAPPER_MODEL_DS:-deepseek-flash}"
+DS_MODEL="${NOPPER_MODEL_DS:-deepseek-flash}"
 DS_BASE_URL="${DEEPSEEK_BASE_URL:-https://api.deepseek.com/anthropic}"
 DS_KEY="${DEEPSEEK_API_KEY:-}"
 
@@ -270,7 +270,7 @@ relaunch_pane() {  # relaunch_pane <win> <cwd> <model> — claude TUI, same wind
   # NO family pinning anywhere (user doctrine: nothing is pinned). Every pane
   # follows the ROTATED GLOBAL credentials via the tmux session env
   # (sync_session_env pushes them after each rotation). Model follows too:
-  # commander uses CMD_MODEL, workers use SAPPER_MODEL — both updated on
+  # commander uses CMD_MODEL, workers use NOPPER_MODEL — both updated on
   # rotation, so a cross-family slide migrates key AND model together.
   # (The old per-family pin once handed the commander a dead glm key while its
   # model had already crossed to deepseek — a 15-min bootstrap boot-lock.)
@@ -336,7 +336,7 @@ relaunch_worker() {  # relaunch_worker <win> <reason> — cwd-scoped --continue,
     log "$win: cannot determine cwd — leaving dead pane for the commander"
     return 1
   fi
-  local m="${SAPPER_MODEL:-$(pane_model "$win")}"
+  local m="${NOPPER_MODEL:-$(pane_model "$win")}"
   log "$win: relaunching TUI with --continue ($reason, cwd $cwd, model $m)"
   relaunch_pane "$win" "$cwd" "$m" || return 1
   mode[$win]=tui
@@ -349,7 +349,7 @@ adopt_existing() {  # adopt windows we did not launch ourselves (worker.sh / ent
     [[ -n "${last_activity[$win]:-}" ]] && continue
     cmd=$(tmux display-message -p -t "$SESSION:$win" '#{pane_start_command}' 2>/dev/null)
     if [[ "$win" == "commander" ]]; then mode[$win]=commander
-    elif printf '%s' "$cmd" | grep -q 'sapper auto'; then mode[$win]=p
+    elif printf '%s' "$cmd" | grep -q 'nopper auto'; then mode[$win]=p
     else mode[$win]=tui; fi
     last_activity[$win]=$(NOW); restarts[$win]=0
     log "$win: adopted existing window (mode=${mode[$win]})"
@@ -380,10 +380,10 @@ finish_all() {  # SPEC unit 2 #6 — global deadline failsafe
     tmux send-keys -t "$SESSION:$win" C-c 2>/dev/null
   done
   sleep 3
-  # every code with a graph; follow -wN .sapper symlinks back to the primary
+  # every code with a graph; follow -wN .nopper symlinks back to the primary
   # code so shared graphs are finished exactly once
   local -A seen=()
-  for g in "$ROOT"/*/.sapper; do
+  for g in "$ROOT"/*/.nopper; do
     [[ -e "$g" ]] || continue
     real=$(realpath "$g" 2>/dev/null) || continue
     code=$(basename "$(dirname "$real")")
@@ -398,7 +398,7 @@ finish_all() {  # SPEC unit 2 #6 — global deadline failsafe
 }
 
 # ---- startup -----------------------------------------------------------------
-keys=$(printf '%s' "${SAPPER_KEY_POOL:-}" | python3 -c '
+keys=$(printf '%s' "${NOPPER_KEY_POOL:-}" | python3 -c '
 import json,sys
 try: print(len([p for p in json.load(sys.stdin) if isinstance(p,dict) and p.get("token")]))
 except Exception: print(0)' 2>/dev/null || echo 0)
@@ -547,8 +547,11 @@ while (( $(NOW) < END_AT )); do
     #     then restart the window (regression from tmux-drive.sh #3: the
     #     hosted gateway is slow and paste-loss strands the mission text,
     #     leaving a live-looking pane that NEVER calls the LLM)
+    # ANCHOR: this regex must match worker.sh default_mission's opening
+    # phrase ("You are an autonomous experiment operator ...") — update BOTH
+    # together (nopper rename of the old 'autonomous pentest operator' anchor).
     if [[ "${mode[$win]:-tui}" == "tui" ]] \
-       && printf '%s' "$pane" | grep -qE '❯.*autonomous pentest operator'; then
+       && printf '%s' "$pane" | grep -qE '❯.*autonomous experiment operator'; then
       enter_tries[$win]=$(( ${enter_tries[$win]:-0} + 1 ))
       if (( ${enter_tries[$win]} > 3 )); then
         mission_restarts[$win]=$(( ${mission_restarts[$win]:-0} + 1 ))
@@ -585,7 +588,7 @@ while (( $(NOW) < END_AT )); do
       relaunch_worker "$win" "TUI exited (${restarts[$win]}/$MAX_RESTARTS)" || true
       continue
     fi
-    # 7) stall (no pane change > SAPPER_STALL_SECONDS): deliberately NO nudge,
+    # 7) stall (no pane change > NOPPER_STALL_SECONDS): deliberately NO nudge,
     #    NO restart — keeping processes alive is the watchdog's whole job
   done
 

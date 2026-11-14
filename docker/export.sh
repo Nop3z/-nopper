@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # export.sh — save an image and keep only the two most recent tars.
 # Usage: bash docker/export.sh [image] [out-tar]
-#   default: sapper-agent:commander dist/sapper-agent-commander.tar.gz
+#   default: nopper-agent:commander dist/nopper-agent-commander.tar.gz
 # Rotation: <out>.prev2 deleted, .prev1 -> .prev2, current -> .prev1, then
 # the fresh export becomes the current file. Disk never holds >2 versions.
 set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IMAGE="${1:-sapper-agent:commander}"
-OUT="${2:-$REPO/dist/sapper-agent-commander.tar.gz}"
+IMAGE="${1:-nopper-agent:commander}"
+OUT="${2:-$REPO/dist/nopper-agent-commander.tar.gz}"
 
 mkdir -p "$(dirname "$OUT")"
 if [[ -f "$OUT.prev1" ]]; then mv -f "$OUT.prev1" "$OUT.prev2"; fi

@@ -2,18 +2,18 @@
 
 > Contract for the three implementation units (worker.sh / watchdog.sh / SKILL.md).
 > Reference implementation for self-heal primitives: `docker/tmux-drive.sh` (read it first).
-> All units live in `docker/commander/`, shipped to the image at `/opt/sapper/docker/commander/`.
+> All units live in `docker/commander/`, shipped to the image at `/opt/nopper/docker/commander/`.
 
 ## Runtime layout
 
 ```
-tmux session "sapper-cmd"
+tmux session "nopper-cmd"
   window 0 "commander"   — claude TUI, the AI commander loop
   window N "<pane-name>" — worker panes (TUI or -p), spawned/killed by commander
   window "watchdog"      — the dumb guardian script (stays in window 0? no: runs detached via nohup)
-ROOT=/work/runs (SAPPER_ROOT)
-  <code>/               — challenge home; .sapper/ fact graph lives here
-  <code>-w2/            — second agent on same challenge: .sapper -> ../<code>/.sapper SYMLINK
+ROOT=/work/runs (NOPPER_ROOT)
+  <code>/               — challenge home; .nopper/ fact graph lives here
+  <code>-w2/            — second agent on same challenge: .nopper -> ../<code>/.nopper SYMLINK
   commander-state.md    — commander's self-maintained campaign state (handover doc)
   drive.log             — watchdog log
 ```
@@ -21,21 +21,21 @@ ROOT=/work/runs (SAPPER_ROOT)
 ## Environment
 
 Same env vars as tmux version: `BENCHMARK_BASE_URL/TOKEN`, `ANTHROPIC_BASE_URL/AUTH_TOKEN`,
-`SAPPER_KEY_POOL` (JSON array), `SAPPER_TOTAL_MINUTES` (default 470),
-`SAPPER_MAX_WORKERS` (default 8 — hard pane cap).
+`NOPPER_KEY_POOL` (JSON array), `NOPPER_TOTAL_MINUTES` (default 470),
+`NOPPER_MAX_WORKERS` (default 8 — hard pane cap).
 
 **Model tiering (commander decides per worker):**
-- `SAPPER_MODEL` (default `glm-5.3[1m]`) — the SMART tier. Used for: the commander's own
+- `NOPPER_MODEL` (default `glm-5.3[1m]`) — the SMART tier. Used for: the commander's own
   TUI, and workers the commander assigns to hard chains.
-- `SAPPER_MODEL_FLASH` (default `glm-5.3-flash[1m]`) — the FAST/FREE tier (unlimited
+- `NOPPER_MODEL_FLASH` (default `glm-5.3-flash[1m]`) — the FAST/FREE tier (unlimited
   quota). Default model for spawned workers: recon, easy challenges, -p chores.
-- `worker.sh spawn --model <id>` overrides per spawn; default = `$SAPPER_MODEL_FLASH`.
+- `worker.sh spawn --model <id>` overrides per spawn; default = `$NOPPER_MODEL_FLASH`.
 - worker.sh persists each pane's model to `ROOT/pane-env/<pane>.env` (KEY=VAL, sourceable)
-  so watchdog relaunches keep the same tier. Watchdog fallback: `$SAPPER_MODEL_FLASH`.
+  so watchdog relaunches keep the same tier. Watchdog fallback: `$NOPPER_MODEL_FLASH`.
 - Key-pool rotation may change provider (e.g. DeepSeek fallback): rotate_key writes
-  SAPPER_MODEL per pool entry; pane relaunches after rotation use the rotated model if
+  NOPPER_MODEL per pool entry; pane relaunches after rotation use the rotated model if
   the original tier is no longer served (pragmatic: keep pane's tier unless provider
-  changed base_url family — simplest: relaunch uses rotated.env SAPPER_MODEL).
+  changed base_url family — simplest: relaunch uses rotated.env NOPPER_MODEL).
 
 Platform constraint: **max 3 concurrently active challenge instances** (HTTP 409 "max active"
 otherwise). Multiple agent panes on the SAME challenge share ONE instance.
@@ -51,13 +51,13 @@ Must be idempotent and safe to call repeatedly. No main loop — one-shot comman
    If HTTP 409 "max active": print friendly error `PLATFORM CAP: close a challenge first`
    and exit 3 (SKILL teaches commander to expect this).
    Extract `container_addr`.
-2. Prepare dirs: if primary agent (`-w1`): `mkdir -p ROOT/<code>`, `sapper init --goal "solve <code>..."`.
-   If secondary (`-w2+`): `mkdir -p ROOT/<code>-wN`, `ln -sfn ../<code>/.sapper ROOT/<code>-wN/.sapper`.
+2. Prepare dirs: if primary agent (`-w1`): `mkdir -p ROOT/<code>`, `nopper init --goal "solve <code>..."`.
+   If secondary (`-w2+`): `mkdir -p ROOT/<code>-wN`, `ln -sfn ../<code>/.nopper ROOT/<code>-wN/.nopper`.
 3. Trust preset (copy the PYTRUST block + settings.json from tmux-drive.sh launch()).
 4. TUI mode: `tmux new-window -d -n <pane> "cd ROOT/<code>[-wN] && claude --model $MODEL --dangerously-skip-permissions 2>&1; echo DRIVE_PANE_EXITED; exec sleep infinity"`
    (NO --continue: fresh session per pane; recovery uses cwd-scoped --continue by watchdog —
    different cwd ⇒ different session dir ⇒ no cross-talk between w1/w2).
-5. `-p` mode: window command = `cd ... && sapper auto --store ROOT/<code>/.sapper --minutes <N|10> ... ; echo DRIVE_PANE_EXITED; exec sleep infinity`
+5. `-p` mode: window command = `cd ... && nopper auto --store ROOT/<code>/.nopper --minutes <N|10> ... ; echo DRIVE_PANE_EXITED; exec sleep infinity`
 6. Wait for input box (≤75s, auto-accepting dialogs), then `send_literal` the mission.
    Default mission (TUI): same operator prompt as tmux-drive.sh launch(), with addresses.
    --mission overrides. Retry mission once if not confirmed in pane.
@@ -76,16 +76,16 @@ NO other pane of that code remains alive).
 
 ### `board` — the war board. Aggregate:
 - platform: `arena list` → per code: completed yes/no, flag counts
-- graph: for each ROOT/*/. sapper/project.json → count facts by kind, open intents, flag facts
+- graph: for each ROOT/*/. nopper/project.json → count facts by kind, open intents, flag facts
   with status recorded/submitted, latest fact mtime
 - panes: worker list merged in
 - output: compact aligned text table (this gets pasted into the commander TUI — keep it <100 lines;
   include a `--json` flag too).
 
-### `hint <code> "<text>"` — append a hint fact to that challenge's graph (`sapper hint` CLI or
+### `hint <code> "<text>"` — append a hint fact to that challenge's graph (`nopper hint` CLI or
 direct json write; hint content prefixed `[commander]`).
 
-### Hard cap: refuse spawn when live worker panes >= SAPPER_MAX_WORKERS (exit 4, `WORKER CAP`).
+### Hard cap: refuse spawn when live worker panes >= NOPPER_MAX_WORKERS (exit 4, `WORKER CAP`).
 
 ## Unit 2: watchdog.sh — the guardian (dumb loop, NO decisions)
 
@@ -95,7 +95,7 @@ Responsibilities IN ORDER per sweep:
 1. **Commander pane dead** (DRIVE_PANE_EXITED or window gone) → relaunch claude in window
    "commander" with `--continue` (commander has its OWN cwd ROOT/commander-home so --continue
    is safe), wait for input box, inject bootstrap prompt:
-   `Read /opt/sapper/docker/commander/SKILL.md and resume command. First read ROOT/commander-state.md if it exists (your handover from a previous incarnation).`
+   `Read /opt/nopper/docker/commander/SKILL.md and resume command. First read ROOT/commander-state.md if it exists (your handover from a previous incarnation).`
    (first boot: same but "start commanding").
 2. **Unsubmitted input in commander pane** (input box `❯` + text present, no activity) → re-Enter
    (3 tries, then restart commander window).
@@ -107,32 +107,32 @@ Responsibilities IN ORDER per sweep:
 5. **TUI worker DRIVE_PANE_EXITED** → auto-relaunch with `--continue` (same cwd), max 3/pane
    (restarts map), budget-independent. -p workers exited = normal completion: leave the pane
    (commander reads result via peek, kills via worker.sh kill).
-6. **Global deadline** (SAPPER_TOTAL_MINUTES from script start) → C-c all worker panes,
+6. **Global deadline** (NOPPER_TOTAL_MINUTES from script start) → C-c all worker panes,
    finish_flags for EVERY code with a graph, arena close every open instance, log summary,
    exit 0. This is the failsafe finish when the commander is dead at the buzzer.
-7. Worker TUI stall (no pane change > SAPPER_STALL_SECONDS=600) → do NOTHING (nudging is the
+7. Worker TUI stall (no pane change > NOPPER_STALL_SECONDS=600) → do NOTHING (nudging is the
    commander's job; watchdog only keeps processes alive).
 
 ALSO: watchdog must NOT do challenge selection, spawning, killing, mission text — zero strategy.
-Startup: `mkdir -p ROOT`, log env summary, ensure tmux session exists (`tmux new-session -d -s sapper-cmd`), adopt-existing state.
+Startup: `mkdir -p ROOT`, log env summary, ensure tmux session exists (`tmux new-session -d -s nopper-cmd`), adopt-existing state.
 
 ## Unit 3: SKILL.md — the commander's brain
 
-Frontmatter-free markdown, injected path /opt/sapper/docker/commander/SKILL.md. Sections:
+Frontmatter-free markdown, injected path /opt/nopper/docker/commander/SKILL.md. Sections:
 
 1. **Role**: field commander of an autonomous pentest engagement (TSecBench, 50-63 challenges,
    8h). You command workers; you NEVER run recon/exploit commands yourself. Your tools:
-   `worker.sh` (hands) + `sapper` CLI (graph/arena/flag/kb) + reading panes.
+   `worker.sh` (hands) + `nopper` CLI (graph/arena/flag/kb) + reading panes.
 2. **The loop** (run forever until deadline): `worker.sh board` → think (who's stuck? who's
    close? what intel transfers?) → act (spawn/msg/hint/kill) → `sleep 60-120` → repeat.
    Iteration cadence: ~1-2 min. Always re-read board fresh; never assume.
 3. **Tool manual**: exact worker.sh subcommand syntax + expected outputs + exit codes
-   (3=platform cap, 4=worker cap) + `sapper arena challenges`, `sapper kb search`.
+   (3=platform cap, 4=worker cap) + `nopper arena challenges`, `nopper kb search`.
 4. **Doctrine**:
    - Score locks at first solve: sweep EASY first (e-series look easier than f2-). Get the
      cheap board coverage before burning hours on hard chains.
    - Platform cap: 3 concurrent challenge INSTANCES. Panes are free (up to
-     SAPPER_MAX_WORKERS=8); instances are not. Closing a challenge frees its instance.
+     NOPPER_MAX_WORKERS=8); instances are not. Closing a challenge frees its instance.
    - Same-challenge multi-agent: spawn w2 with a DIFFERENT angle ("w2: try source-code
      audit path while w1 continues black-box"). They share the fact graph — w2 sees w1's
      facts. Tell workers this.
@@ -143,7 +143,7 @@ Frontmatter-free markdown, injected path /opt/sapper/docker/commander/SKILL.md. 
      working pane. Same product+version across hosts ⇒ same CVE.
    - Stuck ladder (per challenge): tactical msg → +w2 different angle → declare parked
      (kill panes, close instance, move on). Don't let 3 hard challenges eat the clock.
-   - Flags: workers submit via `sapper flag ... --submit` themselves. Your job: verify on
+   - Flags: workers submit via `nopper flag ... --submit` themselves. Your job: verify on
      board that recorded flags got submitted; re-run finish on close.
    - NEVER attack the platform API/scoring infra. Scope = challenge containers only.
 5. **Self-management (CRITICAL)**: your context is finite. Every ~10 loop iterations (or when
@@ -162,18 +162,18 @@ instructions literal and unambiguous, avoid judgment calls requiring nuance.
 
 ## entrypoint.sh (unit 4, trivial)
 Env check (BENCHMARK_*/ANTHROPIC_* mandatory) → platform reachability + GLM smoke (copy from
-entrypoint-tmux.sh) → tmux new-session -d -s sapper-cmd -n commander → `nohup watchdog.sh &`
+entrypoint-tmux.sh) → tmux new-session -d -s nopper-cmd -n commander → `nohup watchdog.sh &`
 → spawn commander claude TUI in window 0 (cwd ROOT/commander-home) with bootstrap prompt.
 Container CMD stays foreground on the watchdog (tmux attach alternative: `tail -f drive.log`).
 
 ## Dockerfile.commander
-FROM sapper-agent:tmux (inherits everything), COPY docker/commander/* to /opt/sapper/docker/commander/,
+FROM nopper-agent:tmux (inherits everything), COPY docker/commander/* to /opt/nopper/docker/commander/,
 chmod +x worker.sh watchdog.sh entrypoint.sh, ENTRYPOINT entrypoint.sh.
 
 ## Known traps (inherited — DO NOT regress)
 - bracketed paste breaks ink TUIs → send-keys -l only
 - first-boot trust dialogs → preset hasTrustDialogAccepted + Down+Enter auto-accept
-- same-cwd --continue cross-talk → per-agent cwd with .sapper symlink
+- same-cwd --continue cross-talk → per-agent cwd with .nopper symlink
 - arena HTTP 409 must never crash a loop → every arena call in `|| true` + message check
 - bash assoc arrays for string-keyed maps → declare -A
 - worker panes must end with `echo DRIVE_PANE_EXITED; exec sleep infinity` so death is detectable

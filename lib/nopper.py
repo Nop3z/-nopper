@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-sapper — an engagement fact graph for autonomous penetration-testing agents.
+nopper — an engagement fact graph for autonomous hardware-research agents.
 
 Facts are nodes, intents are (hyper)edges. An intent's `from` lists the facts
 it depends on; its `to` is the fact it produced (null until concluded).
@@ -8,16 +8,16 @@ A special fact `goal` terminates the graph: an intent with `to == "goal"`
 marks the whole project complete.
 
 Hardware-research specialization on top of fgc (nopper fork): typed facts with
-structured `data`, a crash-safe flag/finding ledger, time budgets for the
+structured `data`, a crash-safe finding ledger, time budgets for the
 autonomy loop, and a multi-campaign sweep runner. (The pentest competition
 layer - arena platform bridge and bench driver - was removed in this fork;
 the fact graph / dispatch / fleet core is unchanged.)
 
 State is encoded in graph structure, not in a state machine. Storage is one
-JSON file per node (git-diffable) under a project-local `.sapper/` directory,
+JSON file per node (git-diffable) under a project-local `.nopper/` directory,
 guarded by fcntl.flock so multiple agents can touch it concurrently.
 
-Pure stdlib. See `sapper --help` and SKILL.md.
+Pure stdlib. See `nopper --help` and SKILL.md.
 """
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ from pathlib import Path
 __version__ = "1.0.0"
 
 GOAL_ID = "goal"
-DEFAULT_STORE = ".sapper"
+DEFAULT_STORE = ".nopper"
 LOCK_NAME = ".lock"
 PEERS_FILE = "ai-peers.json"
 AI_CHANNEL_NAME = "ai-channel.txt"
@@ -108,7 +108,7 @@ def _fact_data_soft_warnings(node: object, kind: str) -> list[str]:
       evidence_level: observation | hypothesis | unknown
       confidence:     low | medium | high   (literal "unknown" also allowed)
     Missing or out-of-vocabulary values are reported as warnings by
-    `sapper validate`; the fact itself stays valid so a partially recorded
+    `nopper validate`; the fact itself stays valid so a partially recorded
     experiment is never thrown away. Untyped facts carry no evidence
     metadata and are skipped.
     """
@@ -195,7 +195,7 @@ class Store:
     def require(self) -> None:
         if not self.exists():
             raise FGError(
-                f"no fact graph here ({self.root}). run `sapper init` first, or "
+                f"no fact graph here ({self.root}). run `nopper init` first, or "
                 f"use --store <path>."
             )
 
@@ -205,7 +205,7 @@ class Store:
         if not goal:
             raise FGError("goal cannot be empty")
         # Serialize initialization too.  Without this lock two simultaneous
-        # `sapper init` processes can both pass the existence check and overwrite
+        # `nopper init` processes can both pass the existence check and overwrite
         # each other's project metadata and goal fact.
         with self.locked():
             if self.exists():
@@ -450,7 +450,7 @@ class Store:
 
         Confirmation and ownership are enforced here as the final write-side
         guard.  Callers cannot bypass a human approval gate merely by invoking
-        `sapper done` or a lower-level method.  `allow_unconfirmed` is reserved
+        `nopper done` or a lower-level method.  `allow_unconfirmed` is reserved
         for internal abandonment bookkeeping (for example brainstorm siblings)
         and is never exposed as a CLI flag.
         """
@@ -809,7 +809,7 @@ def _check_conclusion_permission(
 ) -> None:
     if intent.get("requires_confirmation") and not intent.get("confirmed_at") and not allow_unconfirmed:
         raise FGError(
-            f"intent {intent['id']} requires confirmation; run `sapper confirm {intent['id']}` first"
+            f"intent {intent['id']} requires confirmation; run `nopper confirm {intent['id']}` first"
         )
     owner = intent.get("worker")
     if owner and owner != worker:
@@ -818,7 +818,7 @@ def _check_conclusion_permission(
 
 def _read_node_files(directory: Path, kind: str) -> list[dict]:
     """List all node JSON files in `directory`, skipping any that are malformed
-    or schema-broken with a stderr warning (review codex#8: a corrupt .sapper/*.json
+    or schema-broken with a stderr warning (review codex#8: a corrupt .nopper/*.json
     must NOT crash status/graph/view — degrade and keep going)."""
     out: list[dict] = []
     seen: set[str] = set()
@@ -827,25 +827,25 @@ def _read_node_files(directory: Path, kind: str) -> list[dict]:
             data = read_json(p)
         except (json.JSONDecodeError, UnicodeDecodeError, OSError, ValueError) as exc:
             sys.stderr.write(
-                f"sapper: warning: skipping malformed {kind} file {p.name}: {exc}\n"
+                f"nopper: warning: skipping malformed {kind} file {p.name}: {exc}\n"
             )
             continue
         errors = _node_schema_errors(data, kind)
         if errors:
             sys.stderr.write(
-                f"sapper: warning: skipping invalid {kind} file {p.name}: "
+                f"nopper: warning: skipping invalid {kind} file {p.name}: "
                 f"{'; '.join(errors)}\n"
             )
             continue
         nid = data["id"]
         if p.stem != nid:
             sys.stderr.write(
-                f"sapper: warning: skipping {kind} file {p.name}: filename does not match id {nid!r}\n"
+                f"nopper: warning: skipping {kind} file {p.name}: filename does not match id {nid!r}\n"
             )
             continue
         if nid in seen:
             sys.stderr.write(
-                f"sapper: warning: skipping duplicate {kind} id {nid!r} from {p.name}\n"
+                f"nopper: warning: skipping duplicate {kind} id {nid!r} from {p.name}\n"
             )
             continue
         seen.add(nid)
@@ -936,7 +936,7 @@ def validate_graph(store: Store) -> list[str]:
 
     Normal read commands deliberately skip malformed node files so a damaged
     graph remains inspectable.  This explicit audit command gives operators a
-    complete, actionable report before they dispatch agents or commit `.sapper/`.
+    complete, actionable report before they dispatch agents or commit `.nopper/`.
     """
     errors: list[str] = []
     try:
@@ -1081,7 +1081,7 @@ def render_status(store: Store) -> str:
         lines.append("(no open intents — dispatch a reason step or complete)")
     if g["hints"]:
         lines.append("")
-        lines.append(f"hints: {len(g['hints'])} (use `sapper hint list`)")
+        lines.append(f"hints: {len(g['hints'])} (use `nopper hint list`)")
     return "\n".join(lines)
 
 
@@ -1092,7 +1092,7 @@ def render_status(store: Store) -> str:
 # prior facts/intents whose title or description overlaps. This is the
 # "experience reuse" entry point: cheap substring + difflib similarity, no
 # embedding, no deps. Recall is by design TITLE+DESCRIPTION only — the heavy
-# `doc` field is opt-in via `sapper doc <id>` once a candidate looks promising.
+# `doc` field is opt-in via `nopper doc <id>` once a candidate looks promising.
 # --------------------------------------------------------------------------- #
 _RECALL_TOKEN_RE = re.compile(r"[\w一-鿿]+", re.UNICODE)
 
@@ -1180,12 +1180,12 @@ def recall(store: Store, query: str, limit: int = 5,
 
 def render_recall(matches: list[dict], query: str) -> str:
     """Human-readable recall output. First line is a usage hint so the
-    caller (model or human) knows the next step is `sapper doc <id>`."""
+    caller (model or human) knows the next step is `nopper doc <id>`."""
     if not matches:
         return f"(no similar prior work for {query!r})"
     lines = [
         f"# recall for: {query}",
-        "# use `sapper doc <id>` to read the detailed document",
+        "# use `nopper doc <id>` to read the detailed document",
         "",
     ]
     for m in matches:
@@ -1294,7 +1294,7 @@ def render_intent_prompt(store: Store, template_text: str, intent: dict) -> str:
     # Recall: surface prior facts/intents whose title/description look similar
     # to THIS intent. Excludes the intent itself (it would otherwise score 1.0
     # against its own description). Keep small (5) — the model just needs a
-    # short list of ids it can `sapper doc` into.
+    # short list of ids it can `nopper doc` into.
     matches = [m for m in recall(store, intent.get("description", ""), limit=6)
                if m["id"] != intent["id"]][:5]
     recall_block = render_recall(matches, intent.get("description", "")) \
@@ -1339,7 +1339,7 @@ def _hint_brief(h: dict) -> dict:
 def _to_yaml_like(g: dict) -> str:
     """Compact human-readable dump of the graph for prompts.
     Shows title + description (the two summary layers) but NOT `doc` — the
-    detailed layer is opt-in, read via `sapper doc <id>`, so prompts stay small."""
+    detailed layer is opt-in, read via `nopper doc <id>`, so prompts stay small."""
     lines = []
     lines.append(f"project: status={_prompt_inline(g['project']['status'])}")
     lines.append(f"goal: {_prompt_inline(g['project']['goal'])}")
@@ -1377,7 +1377,7 @@ def _to_yaml_like(g: dict) -> str:
             )
     lines.append(
         "note: nodes marked (has doc) carry a detailed layer — read it with "
-        "`sapper doc <id>` when you need the full context."
+        "`nopper doc <id>` when you need the full context."
     )
     return "\n".join(lines)
 
@@ -1448,7 +1448,7 @@ def extract_json_object(text: str) -> dict:
 # --------------------------------------------------------------------------- #
 # key-pool rotation — swap the model gateway credentials when a key runs dry.
 #
-# SAPPER_KEY_POOL is a JSON array of {"base_url","token","model"} entries.
+# NOPPER_KEY_POOL is a JSON array of {"base_url","token","model"} entries.
 # On a quota/balance/auth error the next entry is loaded into os.environ and
 # the very next engine call uses it — no process restart needed (the -p loop
 # spawns a fresh engine per call). The last entry simply keeps retrying.
@@ -1461,13 +1461,13 @@ _QUOTA_ERROR_RE = re.compile(
 
 
 def _load_key_pool() -> list[dict]:
-    raw = os.environ.get("SAPPER_KEY_POOL", "").strip()
+    raw = os.environ.get("NOPPER_KEY_POOL", "").strip()
     if not raw:
         return []
     try:
         pool = json.loads(raw)
     except json.JSONDecodeError:
-        sys.stderr.write("[sapper] SAPPER_KEY_POOL is not valid JSON — ignoring\n")
+        sys.stderr.write("[nopper] NOPPER_KEY_POOL is not valid JSON — ignoring\n")
         return []
     out = []
     for item in pool if isinstance(pool, list) else []:
@@ -1475,7 +1475,7 @@ def _load_key_pool() -> list[dict]:
             out.append({
                 "base_url": item.get("base_url") or os.environ.get("ANTHROPIC_BASE_URL", ""),
                 "token": item["token"].strip(),
-                "model": item.get("model") or os.environ.get("SAPPER_MODEL", "sonnet"),
+                "model": item.get("model") or os.environ.get("NOPPER_MODEL", "sonnet"),
             })
     return out
 
@@ -1500,9 +1500,9 @@ def _rotate_key() -> bool:
         return True  # single-entry pool: keep the key, caller retries
     os.environ["ANTHROPIC_BASE_URL"] = nxt["base_url"]
     os.environ["ANTHROPIC_AUTH_TOKEN"] = nxt["token"]
-    os.environ["SAPPER_MODEL"] = nxt["model"]
+    os.environ["NOPPER_MODEL"] = nxt["model"]
     sys.stderr.write(
-        f"[sapper] key rotated -> {nxt['base_url']} model={nxt['model']} "
+        f"[nopper] key rotated -> {nxt['base_url']} model={nxt['model']} "
         f"(token …{nxt['token'][-6:]})\n"
     )
     return True
@@ -1520,7 +1520,7 @@ def run_claude(
     """Call the agent CLI and return the parsed JSON result envelope.
 
     The engine is `claude -p --output-format json` by default. Set
-    SAPPER_BIN to any command prefix (e.g. "codex-wrapper" or a script that
+    NOPPER_BIN to any command prefix (e.g. "codex-wrapper" or a script that
     wraps another CLI) — it must accept the prompt on stdin and print a
     claude-compatible envelope {"result": "..."} on stdout. --model and
     --dangerously-skip-permissions / --append-system-prompt are appended
@@ -1530,7 +1530,7 @@ def run_claude(
         raise FGError("claude timeout must be at least 1 second")
     if not isinstance(model, str) or not model.strip():
         raise FGError("claude model cannot be empty")
-    prefix = os.environ.get("SAPPER_BIN", "claude").split()
+    prefix = os.environ.get("NOPPER_BIN", "claude").split()
     argv = prefix + [
         "-p",
         "--output-format", "json",
@@ -1541,7 +1541,7 @@ def run_claude(
     if append_system:
         argv += ["--append-system-prompt", append_system]
     engine = prefix[0]
-    attempts = 1 + max(0, int(os.environ.get("SAPPER_RETRY_MODEL", "0")))
+    attempts = 1 + max(0, int(os.environ.get("NOPPER_RETRY_MODEL", "0")))
     last_error: FGError | None = None
     for attempt in range(1, attempts + 1):
         try:
@@ -1554,14 +1554,14 @@ def run_claude(
                 raise  # not transient
             if _is_quota_error(str(exc)) and _rotate_key():
                 sys.stderr.write(
-                    f"[sapper] quota/auth error (attempt {attempt}/{attempts}); "
+                    f"[nopper] quota/auth error (attempt {attempt}/{attempts}); "
                     "key rotated — retrying immediately\n"
                 )
                 continue
             if attempt < attempts:
                 backoff = min(120, 10 * (2 ** (attempt - 1)))
                 sys.stderr.write(
-                    f"[sapper] engine call failed (attempt {attempt}/{attempts}): "
+                    f"[nopper] engine call failed (attempt {attempt}/{attempts}): "
                     f"{exc}; retrying in {backoff}s\n"
                 )
                 time.sleep(backoff)
@@ -1580,7 +1580,7 @@ def _run_engine_once(argv, prompt, timeout, cwd, engine) -> dict:
             cwd=str(cwd),
         )
     except FileNotFoundError:
-        raise FGError(f"`{engine}` CLI not found on PATH; install it or fix SAPPER_BIN.")
+        raise FGError(f"`{engine}` CLI not found on PATH; install it or fix NOPPER_BIN.")
     except subprocess.TimeoutExpired:
         raise FGError(f"{engine} dispatch timed out after {timeout}s")
     if proc.returncode != 0:
@@ -1870,7 +1870,7 @@ def cmd_finding(args) -> int:
 def _load_kb_module():
     import importlib.util
     spec = importlib.util.spec_from_file_location(
-        "_sapper_kb", Path(__file__).resolve().parent / "kb.py"
+        "_nopper_kb", Path(__file__).resolve().parent / "kb.py"
     )
     assert spec and spec.loader
     module = importlib.util.module_from_spec(spec)
@@ -1923,14 +1923,14 @@ def cmd_kb(args) -> int:
             tag = args.tag[0] if args.tag else None
             hits = kb.search(args.target, tag=tag, limit=args.limit)
             if not hits:
-                print("(no kb matches — try other keywords, `sapper kb list` to browse)")
+                print("(no kb matches — try other keywords, `nopper kb list` to browse)")
                 return 0
             for h in hits:
                 tags = ",".join(h["tags"])
                 print(f"{h['id']}\tscore={h['score']}\t[{tags}]\t{h['title']}")
                 if h["description"]:
                     print(f"      {h['description'][:100]}")
-            print("read full entries with: sapper kb show <id>")
+            print("read full entries with: nopper kb show <id>")
             return 0
         if args.action == "import":
             target = Path(args.target)
@@ -1972,7 +1972,7 @@ def cmd_kb(args) -> int:
 def _board_summary(root: Path) -> list[dict]:
     """One-line status per challenge graph under root, for the commander."""
     rows = []
-    for store_dir in sorted(p for p in root.glob("*/.sapper") if (p / "project.json").exists()):
+    for store_dir in sorted(p for p in root.glob("*/.nopper") if (p / "project.json").exists()):
         try:
             store = Store(store_dir)
             g = build_graph_view(store)
@@ -2073,7 +2073,7 @@ def _command_fleet_cfg(args) -> dict:
             cfg = {}
     else:
         cfg = {}
-    cfg.setdefault("session", "sapper-fleet")
+    cfg.setdefault("session", "nopper-fleet")
     cfg.setdefault("root", args.root)
     return cfg
 
@@ -2099,10 +2099,10 @@ def _hire_worker(cfg: dict, target: str, minutes: int, max_steps: int = 8,
         return False
     if _tmux("has-session", "-t", session, check=False).returncode != 0:
         _tmux("new-session", "-d", "-s", session, "-n", "commander")
-    engine = _sapper_engine_prefix()
+    engine = _nopper_engine_prefix()
     base = Path(cfg.get("_base_dir", ".")).resolve()
     command = (
-        f"cd {base} && {engine} --store {root}/{target}/.sapper auto "
+        f"cd {base} && {engine} --store {root}/{target}/.nopper auto "
         f"--minutes {minutes} --max-steps {max_steps}{(' ' + extra) if extra else ''}"
     )
     _tmux("new-window", "-d", "-t", session, "-n", window)
@@ -2127,15 +2127,15 @@ def _fire_worker(session: str, target: str) -> bool:
 
 def cmd_command(args) -> int:
     """Field-commander loop: read the board, ask the model where the next
-    time slice goes, run `sapper auto` there, repeat until deadline/stop.
+    time slice goes, run `nopper auto` there, repeat until deadline/stop.
 
     Decisions: work (blocking slice here), hire (spawn a parallel tmux
     worker on a challenge), fire (stop a worker), stop."""
     root = Path(args.root)
     if not root.is_dir():
         raise FGError(f"command root {root} is not a directory")
-    if not list(root.glob("*/.sapper/project.json")):
-        raise FGError(f"no */.sapper/project.json found under {root}")
+    if not list(root.glob("*/.nopper/project.json")):
+        raise FGError(f"no */.nopper/project.json found under {root}")
     deadline = deadline_from_args(args)
     if deadline is None:
         raise FGError("command needs --minutes or --deadline (the match slot clock)")
@@ -2232,7 +2232,7 @@ def cmd_command(args) -> int:
         print(f"\n[command] -> {target} for {minutes}m ({note}) "
               f"[{format_time_budget(deadline)}]")
         cmd = cli + [
-            "--store", str(root / target / ".sapper"), "auto",
+            "--store", str(root / target / ".nopper"), "auto",
             "--minutes", str(minutes), "--max-steps", str(args.max_steps),
         ] + passthrough
         subprocess.run(cmd, cwd=str(root / target), check=False)
@@ -2252,17 +2252,17 @@ def cmd_command(args) -> int:
 # --------------------------------------------------------------------------- #
 FLEET_FILE = "fleet.json"
 FLEET_TEMPLATE = {
-    "session": "sapper-fleet",
+    "session": "nopper-fleet",
     "root": "runs",
     "deadline": "2026-10-17T13:00:00",
     "panes": [
         {"name": "commander", "type": "command", "extra_args": "--verify"},
-        {"name": "board", "type": "shell", "command": "watch -n 30 'sapper sweep-status --root runs 2>/dev/null || ls runs'"},
+        {"name": "board", "type": "shell", "command": "watch -n 30 'nopper sweep-status --root runs 2>/dev/null || ls runs'"},
     ],
     "_comment": (
-        "types: command (sapper command --root ROOT --deadline D), "
-        "auto:<name> (sapper auto in runs/<name>), shell (any command). "
-        "`sapper fleet up` opens the tmux session and starts everything; "
+        "types: command (nopper command --root ROOT --deadline D), "
+        "auto:<name> (nopper auto in runs/<name>), shell (any command). "
+        "`nopper fleet up` opens the tmux session and starts everything; "
         "`down` kills it. Run `up` inside the match debugging window; the "
         "loops keep running unattended once the match starts."
     ),
@@ -2278,7 +2278,7 @@ def _tmux(*args: str, check: bool = True) -> subprocess.CompletedProcess:
 
 def _fleet_load(path: Path) -> dict:
     if not path.exists():
-        raise FGError(f"no fleet config at {path}; run `sapper fleet init` first")
+        raise FGError(f"no fleet config at {path}; run `nopper fleet init` first")
     cfg = read_json(path)
     if not isinstance(cfg, dict) or not isinstance(cfg.get("session"), str):
         raise FGError(f"fleet config {path} needs a string 'session'")
@@ -2288,7 +2288,7 @@ def _fleet_load(path: Path) -> dict:
     return cfg
 
 
-def _sapper_engine_prefix() -> str:
+def _nopper_engine_prefix() -> str:
     """Absolute, PATH-independent way to invoke this CLI in generated
     commands (tmux panes may not have ~/.local/bin on PATH)."""
     return f"python3 {Path(__file__).resolve()}"
@@ -2298,7 +2298,7 @@ def _fleet_pane_command(cfg: dict, pane: dict, base_dir: Path | None = None) -> 
     ptype = pane.get("type", "shell")
     root = cfg.get("root", "runs")
     deadline = cfg.get("deadline")
-    engine = _sapper_engine_prefix()
+    engine = _nopper_engine_prefix()
     if ptype == "command":
         cmd = f"{engine} command --root {root}"
         if deadline:
@@ -2307,7 +2307,7 @@ def _fleet_pane_command(cfg: dict, pane: dict, base_dir: Path | None = None) -> 
         cmd += f" {extra}" if extra else ""
     elif ptype.startswith("auto:"):
         name = ptype.split(":", 1)[1]
-        cmd = f"{engine} --store {root}/{name}/.sapper auto"
+        cmd = f"{engine} --store {root}/{name}/.nopper auto"
         if deadline:
             cmd += f" --deadline {deadline}"
         extra = pane.get("extra_args", "")
@@ -2331,13 +2331,13 @@ def cmd_fleet(args) -> int:
             raise FGError(f"fleet config already exists: {path}")
         path.write_text(json.dumps(FLEET_TEMPLATE, ensure_ascii=False, indent=2) + "\n",
                         encoding="utf-8")
-        print(f"wrote {path} — edit deadline/panes, then `sapper fleet up`")
+        print(f"wrote {path} — edit deadline/panes, then `nopper fleet up`")
         return 0
     if args.action == "up":
         cfg = _fleet_load(path)
         session = cfg["session"]
         if _tmux("has-session", "-t", session, check=False).returncode == 0:
-            raise FGError(f"tmux session {session!r} already exists; `sapper fleet down` first")
+            raise FGError(f"tmux session {session!r} already exists; `nopper fleet down` first")
         _tmux("new-session", "-d", "-s", session)
         first = True
         for pane in cfg["panes"]:
@@ -2358,7 +2358,7 @@ def cmd_fleet(args) -> int:
             os.unlink(buf.name)
             print(f"[fleet] {name}: {command}")
         print(f"[fleet] session {session!r} up — detach with Ctrl-b d; "
-              f"loops run unattended. `sapper fleet down` to stop.")
+              f"loops run unattended. `nopper fleet down` to stop.")
         return 0
     if args.action == "down":
         cfg = _fleet_load(path)
@@ -2370,7 +2370,7 @@ def cmd_fleet(args) -> int:
         print(f"[fleet] session {session!r} killed")
         return 0
     if args.action == "hire":
-        cfg = _fleet_load(path) if path.exists() else {"session": "sapper-fleet", "root": "runs"}
+        cfg = _fleet_load(path) if path.exists() else {"session": "nopper-fleet", "root": "runs"}
         cfg["_base_dir"] = str(Path.cwd())
         if not args.target:
             raise FGError("fleet hire needs --target <challenge>")
@@ -2381,14 +2381,14 @@ def cmd_fleet(args) -> int:
               f"{'worker window w-%s up' % args.target if spawned else 'worker already running'}")
         return 0
     if args.action == "fire":
-        cfg = _fleet_load(path) if path.exists() else {"session": "sapper-fleet", "root": "runs"}
+        cfg = _fleet_load(path) if path.exists() else {"session": "nopper-fleet", "root": "runs"}
         if not args.target:
             raise FGError("fleet fire needs --target <challenge>")
         killed = _fire_worker(cfg["session"], args.target)
         print(f"[fleet] fire {args.target}: {'released' if killed else 'no worker running'}")
         return 0
     if args.action == "workers":
-        cfg = _fleet_load(path) if path.exists() else {"session": "sapper-fleet", "root": "runs"}
+        cfg = _fleet_load(path) if path.exists() else {"session": "nopper-fleet", "root": "runs"}
         workers = sorted(_active_workers(cfg["session"]))
         print("hired workers: " + (", ".join(workers) if workers else "(none)"))
         return 0
@@ -2411,25 +2411,25 @@ def cmd_fleet(args) -> int:
 def cmd_sweep(args) -> int:
     """Drive multiple per-challenge graphs in rotation until deadline.
 
-    Layout: one directory per challenge, each with its own .sapper/ graph:
+    Layout: one directory per challenge, each with its own .nopper/ graph:
 
         runs/
-        ├── c01/.sapper/project.json   goal: capture flag for challenge c01
-        ├── c02/.sapper/project.json
+        ├── c01/.nopper/project.json   goal: experiment campaign c01
+        ├── c02/.nopper/project.json
         └── ...
 
     Each round gives every unfinished challenge `--minutes-per` of autonomous
-    work (reason -> explore -> ... via `sapper auto`). Stops when the global
+    work (reason -> explore -> ... via `nopper auto`). Stops when the global
     deadline passes or every graph reaches its goal.
     """
     root = Path(args.root)
     if not root.is_dir():
         raise FGError(f"sweep root {root} is not a directory")
     graph_dirs = sorted(
-        p.parent for p in root.glob("*/.sapper/project.json")
+        p.parent for p in root.glob("*/.nopper/project.json")
     )
     if not graph_dirs:
-        raise FGError(f"no */.sapper/project.json found under {root}")
+        raise FGError(f"no */.nopper/project.json found under {root}")
     deadline = deadline_from_args(args)
     if deadline is None:
         raise FGError("sweep needs --minutes or --deadline (the match slot clock)")
@@ -2452,7 +2452,7 @@ def cmd_sweep(args) -> int:
         pending = []
         for d in graph_dirs:
             try:
-                status = (read_json(d / ".sapper" / "project.json")).get("status")
+                status = (read_json(d / ".nopper" / "project.json")).get("status")
             except (json.JSONDecodeError, OSError):
                 status = "active"  # unreadable -> still try to work it
             if status != "completed":
@@ -2468,7 +2468,7 @@ def cmd_sweep(args) -> int:
             print(f"\n[sweep] {d.name}: auto for {budget}m "
                   f"({len(pending)} pending, {format_time_budget(deadline)})")
             cmd = cli + [
-                "--store", str(d / ".sapper"), "auto",
+                "--store", str(d / ".nopper"), "auto",
                 "--minutes", str(budget),
                 "--max-steps", str(args.max_steps),
             ] + passthrough
@@ -2477,7 +2477,7 @@ def cmd_sweep(args) -> int:
     done = 0
     for d in graph_dirs:
         try:
-            status = (read_json(d / ".sapper" / "project.json")).get("status")
+            status = (read_json(d / ".nopper" / "project.json")).get("status")
         except (json.JSONDecodeError, OSError):
             status = "?"
         mark = "DONE" if status == "completed" else status
@@ -2504,7 +2504,7 @@ def cmd_show(args) -> int:
 
 def cmd_doc(args) -> int:
     """Read or write a node's detailed document (the third doc layer).
-    `sapper doc f001` prints the doc; `sapper doc f001 --set '<text>'` /
+    `nopper doc f001` prints the doc; `nopper doc f001 --set '<text>'` /
     `--set-file <path>` writes it. Pass --edit to open $EDITOR."""
     store = Store(Path(args.store))
     store.require()
@@ -2537,7 +2537,7 @@ def cmd_doc(args) -> int:
     if doc:
         print(doc)
     else:
-        sys.stderr.write(f"{args.id} has no doc. add one: sapper doc {args.id} --set '...' or --edit\n")
+        sys.stderr.write(f"{args.id} has no doc. add one: nopper doc {args.id} --set '...' or --edit\n")
         return 1
     return 0
 
@@ -2545,7 +2545,7 @@ def cmd_doc(args) -> int:
 def cmd_recall(args) -> int:
     """Find prior facts/intents whose title+description look similar to the
     given query. Use this BEFORE starting a new task: if a strong match
-    exists, read its doc with `sapper doc <id>` and reuse what was learned."""
+    exists, read its doc with `nopper doc <id>` and reuse what was learned."""
     store = Store(Path(args.store))
     store.require()
     query = (args.query or "").strip()
@@ -2664,12 +2664,12 @@ def _agents_system_prompt(store: Store) -> str:
     cwd = Path.cwd()
     return (
         "You are an autonomous executor in a hardware-experiment fact-graph agent system.\n"
-        f"The engagement-graph CLI `sapper` is available (store at {store.root}).\n"
+        f"The engagement-graph CLI `nopper` is available (store at {store.root}).\n"
         "Use it to read and write shared memory:\n"
-        "  sapper status                  # see project + open intents + finding ledger\n"
-        "  sapper graph                   # full graph (facts + intents)\n"
-        "  sapper show fact <id>          # detail\n"
-        "  sapper fact \"<text>\" -k <kind> -d key=value   # record a TYPED fact\n"
+        "  nopper status                  # see project + open intents + finding ledger\n"
+        "  nopper graph                   # full graph (facts + intents)\n"
+        "  nopper show fact <id>          # detail\n"
+        "  nopper fact \"<text>\" -k <kind> -d key=value   # record a TYPED fact\n"
         "    kinds: device chip board interface firmware_image probe_point vulnerability "
         "glitch_param glitch_result scan_campaign power_profile analysis_note repro_confirmed\n"
         "    data fields are flat key=value scalars. Suggested keys per kind:\n"
@@ -2690,10 +2690,10 @@ def _agents_system_prompt(store: Store) -> str:
         "      repro_confirmed: result_ref, attempts, success_rate, window_min, window_max\n"
         "    every typed fact should also set evidence_level (observation/hypothesis/unknown) "
         "and confidence (low/medium/high) — write the literal 'unknown' when unsure.\n"
-        "  sapper finding \"<value>\" -c <campaign>   # record an observed result NOW (finding ledger)\n"
-        "  sapper kb search \"<keywords>\"                       # offline technique kb\n"
-        "  sapper kb show <kb-id>                               # full kb entry (methods+commands)\n"
-        "  sapper done <intent> --fact \"<text>\" -k <kind> -d key=value  # conclude an intent\n"
+        "  nopper finding \"<value>\" -c <campaign>   # record an observed result NOW (finding ledger)\n"
+        "  nopper kb search \"<keywords>\"                       # offline technique kb\n"
+        "  nopper kb show <kb-id>                               # full kb entry (methods+commands)\n"
+        "  nopper done <intent> --fact \"<text>\" -k <kind> -d key=value  # conclude an intent\n"
         "Rules: record only what you physically observed — a suspicion is a hypothesis "
         "(evidence_level=hypothesis), not a confirmed fact. Cite exact commands, probe "
         "points, and response evidence. Stay scoped to the assigned intent and the "
@@ -2746,7 +2746,7 @@ def _dispatch_explore(store, templates_dir, intent, model, timeout, skip, cwd, a
         return 0
     if not args.dry_run and intent.get("requires_confirmation") and not intent.get("confirmed_at"):
         raise FGError(
-            f"intent {intent['id']} requires confirmation; run `sapper confirm {intent['id']}` first"
+            f"intent {intent['id']} requires confirmation; run `nopper confirm {intent['id']}` first"
         )
     if not skip:
         # explore needs to actually do work (shell, edits); without skip-permissions
@@ -2948,7 +2948,7 @@ def _apply_brainstorm(store: Store, payload: dict, max_options: int | None = Non
         made.append(intent["id"])
     if not made:
         return "no valid options (check from-facts exist)"
-    return f"proposed {len(made)} options (confirm one with `sapper brainstorm-pick <id>`): {', '.join(made)}"
+    return f"proposed {len(made)} options (confirm one with `nopper brainstorm-pick <id>`): {', '.join(made)}"
 
 
 def cmd_brainstorm_pick(args) -> int:
@@ -3141,7 +3141,7 @@ def _skill_root() -> Path:
 
 
 def _hook_script_path() -> Path:
-    return _skill_root() / "lib" / "sapper-hook.py"
+    return _skill_root() / "lib" / "nopper-hook.py"
 
 
 def _load_settings_patch():
@@ -3160,10 +3160,10 @@ def _load_settings_patch():
 
 
 def cmd_setup(args) -> int:
-    """`sapper setup` — turn THIS project into a fact-graph project.
+    """`nopper setup` — turn THIS project into a fact-graph project.
 
     Does three things, idempotently, scoped to the current project only:
-      1. creates the local graph (.sapper/) if --goal is given (else requires one
+      1. creates the local graph (.nopper/) if --goal is given (else requires one
          to already exist, or asks you to pass --goal)
       2. registers the two hooks in <project>/.claude/settings.json so this
          project auto-injects the graph into every turn
@@ -3187,7 +3187,7 @@ def cmd_setup(args) -> int:
     if not store.exists():
         if not args.goal:
             raise FGError(
-                "no .sapper/ here. Pass --goal \"<one-line goal>\" to create one, "
+                "no .nopper/ here. Pass --goal \"<one-line goal>\" to create one, "
                 "or run from a directory that already has a graph."
             )
         store.init(origin=args.origin or "", goal=args.goal)
@@ -3218,19 +3218,19 @@ def cmd_setup(args) -> int:
 
     print(
         "\nsetup done. This project now auto-reads/maintains its fact graph.\n"
-        "  sapper status          # see current state\n"
-        "  sapper dispatch reason # propose next work\n"
-        "  sapper peers --discover # optional: list tmux panes, then ask user who to authorize\n"
-        "  sapper auto --skip-permissions  # drive to completion\n"
-        "To undo:  sapper teardown   (removes sapper hooks + its AGENTS.md; keeps .sapper/)"
+        "  nopper status          # see current state\n"
+        "  nopper dispatch reason # propose next work\n"
+        "  nopper peers --discover # optional: list tmux panes, then ask user who to authorize\n"
+        "  nopper auto --skip-permissions  # drive to completion\n"
+        "To undo:  nopper teardown   (removes nopper hooks + its AGENTS.md; keeps .nopper/)"
     )
     return 0
 
 
 def cmd_teardown(args) -> int:
-    """`sapper teardown` — remove the hooks and sapper-owned AGENTS.md from THIS project.
+    """`nopper teardown` — remove the hooks and nopper-owned AGENTS.md from THIS project.
 
-    Never touches the graph data (.sapper/) unless --purge is given.
+    Never touches the graph data (.nopper/) unless --purge is given.
     """
     project_dir = Path.cwd()
     patch = _load_settings_patch()
@@ -3273,7 +3273,7 @@ def cmd_teardown(args) -> int:
             ap.unlink()
             print(f"removed {ap}")
         else:
-            print(f"kept existing {ap} (not generated by sapper)")
+            print(f"kept existing {ap} (not generated by nopper)")
 
     if args.purge:
         import shutil
@@ -3339,8 +3339,8 @@ def cmd_view(args) -> int:
     if args.print:
         sys.stdout.write(_render_static_html(store))
         return 0
-    # default: write a snapshot file next to .sapper and tell the user where it is
-    out = Path(args.out) if args.out else (store.root.parent / "sapper-graph.html")
+    # default: write a snapshot file next to .nopper and tell the user where it is
+    out = Path(args.out) if args.out else (store.root.parent / "nopper-graph.html")
     out.write_text(_render_static_html(store), encoding="utf-8")
     # try to open it in the default browser (best-effort, non-fatal)
     opened = _try_open(out)
@@ -3382,7 +3382,7 @@ def _view_serve(store: Store, args) -> int:
     # opens, baked into the served HTML instead.
     import secrets
     token = secrets.token_hex(12)
-    poll_path = f"/__sapper_graph__/{token}.json"
+    poll_path = f"/__nopper_graph__/{token}.json"
 
     class Handler(http.server.BaseHTTPRequestHandler):
         def log_message(self, *a):  # silence default logging
@@ -3614,7 +3614,7 @@ def cmd_auto(args) -> int:
                 explore_count += 1
             except FGError as exc:
                 if "already concluded" in str(exc):
-                    # the executor concluded the intent itself (`sapper done`)
+                    # the executor concluded the intent itself (`nopper done`)
                     # — that is a success, not a failure
                     explore_count += 1
                     print(f"[auto]        {intent['id']} concluded by the executor itself")
@@ -3676,7 +3676,7 @@ def _run_explore_raw(store, templates_dir, intent, model, timeout, skip, cwd, cl
         return store.get_fact(intent["to"])
     if intent.get("requires_confirmation") and not intent.get("confirmed_at"):
         raise FGError(
-            f"intent {intent['id']} requires confirmation; run `sapper confirm {intent['id']}` first"
+            f"intent {intent['id']} requires confirmation; run `nopper confirm {intent['id']}` first"
         )
     worker = _worker_id(model)
     tpl = _load_template(templates_dir, "explore.md")
@@ -3869,7 +3869,7 @@ def cmd_peers(args) -> int:
             )
         print(
             "\nAuthorize explicitly before sending, for example:\n"
-            "  sapper peers --add harley --target api-6:0.0 --sender \"Codex/api2-4\""
+            "  nopper peers --add harley --target api-6:0.0 --sender \"Codex/api2-4\""
         )
         return 0
 
@@ -3888,7 +3888,7 @@ def cmd_peers(args) -> int:
             data["channel"] = str(Path(args.channel).expanduser())
         peers[name] = {
             "target": args.target,
-            "sender": args.sender or os.environ.get("FGC_SENDER") or "sapper-agent",
+            "sender": args.sender or os.environ.get("FGC_SENDER") or "nopper-agent",
             "created_at": now_iso(),
             "note": args.note or None,
         }
@@ -3912,7 +3912,7 @@ def cmd_peers(args) -> int:
     print(f"shared log:  {data.get('channel')}")
     if not peers:
         print("(no authorized peers)")
-        print("run `sapper peers --discover` to list tmux panes, then authorize one with --add")
+        print("run `nopper peers --discover` to list tmux panes, then authorize one with --add")
         return 0
     print("authorized peers:")
     for name, peer in sorted(peers.items()):
@@ -3929,7 +3929,7 @@ def cmd_send(args) -> int:
     peer = peers.get(args.peer)
     if peer is None:
         raise FGError(
-            f"peer not configured: {args.peer}. Run `sapper peers` to see authorized peers."
+            f"peer not configured: {args.peer}. Run `nopper peers` to see authorized peers."
         )
     target = peer.get("target")
     if not target:
@@ -3948,7 +3948,7 @@ def cmd_send(args) -> int:
         message = body
     else:
         stamp = time.strftime("%Y-%m-%d %H:%M")
-        sender = args.sender or peer.get("sender") or os.environ.get("FGC_SENDER") or "sapper-agent"
+        sender = args.sender or peer.get("sender") or os.environ.get("FGC_SENDER") or "nopper-agent"
         message = f"[{stamp}][{sender}] {body}"
 
     if not args.no_log:
@@ -3975,7 +3975,7 @@ def cmd_capture(args) -> int:
     peer = data["peers"].get(args.peer)
     if peer is None:
         raise FGError(
-            f"peer not configured: {args.peer}. Run `sapper peers` to see authorized peers."
+            f"peer not configured: {args.peer}. Run `nopper peers` to see authorized peers."
         )
     target = peer.get("target")
     if not target:
@@ -3994,21 +3994,21 @@ def cmd_capture(args) -> int:
         stamp = time.strftime("%Y-%m-%d %H:%M")
         with open(channel, "a", encoding="utf-8") as fh:
             fh.write(
-                f"[{stamp}][sapper-capture] peer={args.peer} "
+                f"[{stamp}][nopper-capture] peer={args.peer} "
                 f"target={target} lines={args.lines}\n"
             )
             fh.write(text + "\n")
     return 0
 
 
-_AGENTS_MARKER = "<!-- generated by sapper; edit or remove this marker to keep this file -->"
+_AGENTS_MARKER = "<!-- generated by nopper; edit or remove this marker to keep this file -->"
 
 _AGENTS_SPEC = """\
 {marker}
 # AGENTS.md — fact-graph protocol
 
 This project uses a fact-graph as shared working memory. The graph lives at
-`{store}` and is manipulated by the `sapper` CLI.
+`{store}` and is manipulated by the `nopper` CLI.
 
 ## model
 - **fact**: a confirmed observation or reproducible result. Immutable once written.
@@ -4018,26 +4018,26 @@ This project uses a fact-graph as shared working memory. The graph lives at
 
 ## commands you will use
 ```
-sapper status                     # project state + what's ready to work
-sapper graph                      # full graph as text (title + one-line summary + 📄 markers)
-sapper frontier                   # only the ready open intents
-sapper show intent <id>           # full node detail
-sapper doc <id>                   # read the DETAILED document of a fact/intent (when you need depth)
-sapper fact "<gist>" -t "<title>" [--doc "<detail>"]   # record a confirmed result
-sapper fact "<gist>" --from-intent i003              # record + close i003 atomically
-sapper done <intent-id> --fact "<gist>" -t "<title>"   # finish an intent, produce a fact
-sapper hint "<message>"           # leave a note for the commander / human
-sapper peers --discover           # list tmux panes before asking the user to authorize peers
-sapper peers                      # list user-authorized peer targets from .sapper/ai-peers.json
-sapper send <peer> "<message>"    # message an authorized peer via tmux + append .sapper/ai-channel.txt
-sapper capture <peer>             # read recent output from an authorized peer pane
+nopper status                     # project state + what's ready to work
+nopper graph                      # full graph as text (title + one-line summary + 📄 markers)
+nopper frontier                   # only the ready open intents
+nopper show intent <id>           # full node detail
+nopper doc <id>                   # read the DETAILED document of a fact/intent (when you need depth)
+nopper fact "<gist>" -t "<title>" [--doc "<detail>"]   # record a confirmed result
+nopper fact "<gist>" --from-intent i003              # record + close i003 atomically
+nopper done <intent-id> --fact "<gist>" -t "<title>"   # finish an intent, produce a fact
+nopper hint "<message>"           # leave a note for the commander / human
+nopper peers --discover           # list tmux panes before asking the user to authorize peers
+nopper peers                      # list user-authorized peer targets from .nopper/ai-peers.json
+nopper send <peer> "<message>"    # message an authorized peer via tmux + append .nopper/ai-channel.txt
+nopper capture <peer>             # read recent output from an authorized peer pane
 ```
 
 ## three documentation layers (every node)
 1. **title** — short (2-10 字) human label, shown in the graph view.
 2. **description** — one-sentence gist. Injected into prompts by default.
 3. **doc** — detailed markdown (commands, paths, evidence). NOT in prompts by
-   default; READ it with `sapper doc <id>` when you need the full context.
+   default; READ it with `nopper doc <id>` when you need the full context.
    WRITE it with `--doc "..."` or `--doc-file <path>`.
 
 ## rules
@@ -4045,13 +4045,13 @@ sapper capture <peer>             # read recent output from an authorized peer p
 2. Never invent results. If evidence is missing, say so in the fact description.
 3. Stay scoped to your assigned intent unless a blocker forces otherwise.
 4. Prefer reproducible evidence: exact commands, paths, versions, error messages.
-5. Conclude your intent with `sapper done` so the commander can pick the next step.
+5. Conclude your intent with `nopper done` so the commander can pick the next step.
 6. Never send messages to a tmux pane unless the user explicitly authorized it
-   and it is listed by `sapper peers` in `{store}/ai-peers.json`.
-7. For authorized peer communication, prefer `sapper send <peer> ...`; it uses the
+   and it is listed by `nopper peers` in `{store}/ai-peers.json`.
+7. For authorized peer communication, prefer `nopper send <peer> ...`; it uses the
    reliable paste-buffer newline flow and records the message in the shared log.
 8. After sending a question, proactively check for replies with
-   `sapper capture <peer> --lines 120`; peers may answer directly in their TUI, so
+   `nopper capture <peer> --lines 120`; peers may answer directly in their TUI, so
    not every reply appears in ai-channel.txt.
 """
 
@@ -4061,11 +4061,11 @@ sapper capture <peer>             # read recent output from an authorized peer p
 # --------------------------------------------------------------------------- #
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="sapper",
+        prog="nopper",
         description="fact-graph working memory for agentic work",
     )
     p.add_argument("--store", default=DEFAULT_STORE, help=f"graph dir (default: {DEFAULT_STORE})")
-    p.add_argument("--version", action="version", version=f"sapper {__version__}")
+    p.add_argument("--version", action="version", version=f"nopper {__version__}")
     sub = p.add_subparsers(dest="command", required=True)
 
     sp = sub.add_parser("init", help="create a fact graph in --store")
@@ -4145,8 +4145,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="discover tmux panes and manage user-authorized AI peers",
         description=(
             "List tmux panes with --discover, then explicitly authorize selected "
-            "targets with --add. sapper send refuses to message panes that are not "
-            "stored in .sapper/ai-peers.json."
+            "targets with --add. nopper send refuses to message panes that are not "
+            "stored in .nopper/ai-peers.json."
         ),
     )
     sp.add_argument("--discover", action="store_true", help="list all tmux panes")
@@ -4154,9 +4154,9 @@ def build_parser() -> argparse.ArgumentParser:
                     help="authorize a peer name after user approval")
     sp.add_argument("--remove", metavar="NAME", default=None, help="remove an authorized peer")
     sp.add_argument("--target", default=None, help="tmux target for --add, e.g. api-6:0.0")
-    sp.add_argument("--sender", default=None, help="sender label used by sapper send")
+    sp.add_argument("--sender", default=None, help="sender label used by nopper send")
     sp.add_argument("--channel", default=None,
-                    help="shared append-only log path (default: .sapper/ai-channel.txt)")
+                    help="shared append-only log path (default: .nopper/ai-channel.txt)")
     sp.add_argument("--note", default=None, help="optional human note about the peer")
     sp.add_argument("--json", action="store_true")
     sp.set_defaults(func=cmd_peers)
@@ -4165,7 +4165,7 @@ def build_parser() -> argparse.ArgumentParser:
         "send",
         help="send a message to a user-authorized tmux peer",
         description=(
-            "Send to a peer configured by `sapper peers --add`. Messages are pasted "
+            "Send to a peer configured by `nopper peers --add`. Messages are pasted "
             "through tmux load-buffer/paste-buffer with extra LF submits and are "
             "also appended to the shared log unless --no-log is used."
         ),
@@ -4182,9 +4182,9 @@ def build_parser() -> argparse.ArgumentParser:
         "capture",
         help="read recent output from a user-authorized tmux peer",
         description=(
-            "Capture recent pane output from a peer configured by `sapper peers --add`. "
+            "Capture recent pane output from a peer configured by `nopper peers --add`. "
             "Use this after sending questions because peers may reply directly in "
-            "their TUI instead of using sapper send."
+            "their TUI instead of using nopper send."
         ),
     )
     sp.add_argument("peer", help="authorized peer name")
@@ -4206,7 +4206,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="read or write a node's detailed document (the third layer)",
         description=(
             "Manage the detailed 'doc' field of a fact or intent. "
-            "`sapper doc f001` prints it; `sapper doc f001 --set '<text>'` or "
+            "`nopper doc f001` prints it; `nopper doc f001 --set '<text>'` or "
             "`--set-file <path>` writes it; `--edit` opens $EDITOR. "
             "title = human glance, description = one-line gist, doc = full detail."
         ),
@@ -4223,8 +4223,8 @@ def build_parser() -> argparse.ArgumentParser:
         description=(
             "Search title+description of every fact and intent for nodes "
             "similar to the query. The intended flow before starting any new "
-            "task: `sapper recall '<task gist>'` → scan top hits → "
-            "`sapper doc <id>` on the most relevant one to read the detailed "
+            "task: `nopper recall '<task gist>'` → scan top hits → "
+            "`nopper doc <id>` on the most relevant one to read the detailed "
             "context and reuse what was learned. Cheap Unicode/CJK-aware "
             "token overlap + difflib fuzzy fallback; no embeddings."
         ),
@@ -4275,8 +4275,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp = sub.add_parser("dispatch", help="run a commander/executor step via the claude CLI")
     sp.add_argument("target", help="'reason' | 'verify' | <intent-id>")
-    sp.add_argument("--model", default=os.environ.get("SAPPER_MODEL", "sonnet"))
-    sp.add_argument("--timeout", type=int, default=int(os.environ.get("SAPPER_TIMEOUT", "600")))
+    sp.add_argument("--model", default=os.environ.get("NOPPER_MODEL", "sonnet"))
+    sp.add_argument("--timeout", type=int, default=int(os.environ.get("NOPPER_TIMEOUT", "600")))
     sp.add_argument("--templates", default=None, help="templates dir (default: <store>/../templates or SKILL dir)")
     sp.add_argument("--skip-permissions", action="store_true",
                     help="pass --dangerously-skip-permissions to the executor")
@@ -4290,7 +4290,7 @@ def build_parser() -> argparse.ArgumentParser:
         "brainstorm-pick",
         help="pick one brainstorm option, abandon the rest",
         description=(
-            "After `sapper dispatch brainstorm` proposes multiple options as "
+            "After `nopper dispatch brainstorm` proposes multiple options as "
             "requires_confirmation intents, use this to pick the winner. "
             "The picked intent is confirmed; siblings from the same batch "
             "are concluded with a rejection fact."
@@ -4301,7 +4301,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp = sub.add_parser(
         "setup",
-        help="opt-in THIS project: create .sapper/ + register hooks in ./.claude/settings.json",
+        help="opt-in THIS project: create .nopper/ + register hooks in ./.claude/settings.json",
         description=(
             "Turn the current project into a fact-graph project. Creates the "
             "local graph, registers the SessionStart/UserPromptSubmit hooks in "
@@ -4309,7 +4309,7 @@ def build_parser() -> argparse.ArgumentParser:
             "AGENTS.md. Nothing under ~ is touched."
         ),
     )
-    sp.add_argument("--goal", default=None, help="one-line goal (required if no .sapper/ yet)")
+    sp.add_argument("--goal", default=None, help="one-line goal (required if no .nopper/ yet)")
     sp.add_argument("--origin", default="", help="where this task came from")
     sp.add_argument("--agents", action="store_true", help="also write AGENTS.md")
     sp.add_argument("--force", action="store_true")
@@ -4317,9 +4317,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp = sub.add_parser(
         "teardown",
-        help="remove hooks + AGENTS.md from THIS project (keeps .sapper/ unless --purge)",
+        help="remove hooks + AGENTS.md from THIS project (keeps .nopper/ unless --purge)",
     )
-    sp.add_argument("--purge", action="store_true", help="also delete the .sapper/ graph data")
+    sp.add_argument("--purge", action="store_true", help="also delete the .nopper/ graph data")
     sp.set_defaults(func=cmd_teardown)
 
     sp = sub.add_parser(
@@ -4327,7 +4327,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="open an interactive HTML visualization of the graph",
         description=(
             "Visualize the fact graph. By default writes a static snapshot "
-            "sapper-graph.html (graph inlined) and opens it — works from "
+            "nopper-graph.html (graph inlined) and opens it — works from "
             "file:// with no server. With --serve, starts a local HTTP server "
             "that auto-refreshes every 2s as the graph changes."
         ),
@@ -4373,7 +4373,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument("--source", default=None, help="where this came from (URL/book)")
     sp.add_argument("--path", default=None, help="file or dir of .md files (for import)")
     sp.add_argument("--root", default=None,
-                    help="kb root dir (default SAPPER_KB_ROOT or the repo's kb/)")
+                    help="kb root dir (default NOPPER_KB_ROOT or the repo's kb/)")
     sp.add_argument("--limit", "-n", type=int, default=5)
     sp.set_defaults(func=cmd_kb)
 
@@ -4393,8 +4393,8 @@ def build_parser() -> argparse.ArgumentParser:
                     help="fleet.json to read the tmux session name from (hire/fire)")
     sp.add_argument("--poll-seconds", type=int, default=30,
                     help="settle time after hire/fire before the next decision")
-    sp.add_argument("--model", default=os.environ.get("SAPPER_MODEL", "sonnet"))
-    sp.add_argument("--timeout", type=int, default=int(os.environ.get("SAPPER_TIMEOUT", "600")))
+    sp.add_argument("--model", default=os.environ.get("NOPPER_MODEL", "sonnet"))
+    sp.add_argument("--timeout", type=int, default=int(os.environ.get("NOPPER_TIMEOUT", "600")))
     sp.add_argument("--templates", default=None)
     sp.add_argument("--skip-permissions", action="store_true")
     sp.add_argument("--verify", action="store_true")
@@ -4414,7 +4414,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp = sub.add_parser(
         "sweep",
-        help="round-robin `auto` across per-challenge graphs (<root>/<name>/.sapper)",
+        help="round-robin `auto` across per-challenge graphs (<root>/<name>/.nopper)",
     )
     sp.add_argument("--root", default="runs", help="directory holding one subdir per challenge")
     sp.add_argument("--minutes", type=int, default=None,
@@ -4423,7 +4423,7 @@ def build_parser() -> argparse.ArgumentParser:
                     help="global stop time, ISO 8601 local (e.g. 2026-10-17T13:00:00)")
     sp.add_argument("--minutes-per", type=int, default=20,
                     help="minutes of work per challenge per round")
-    sp.add_argument("--model", default=os.environ.get("SAPPER_MODEL", "sonnet"))
+    sp.add_argument("--model", default=os.environ.get("NOPPER_MODEL", "sonnet"))
     sp.add_argument("--templates", default=None)
     sp.add_argument("--skip-permissions", action="store_true")
     sp.add_argument("--verify", action="store_true")
@@ -4433,8 +4433,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp = sub.add_parser(
         "auto", help="drive the whole graph forward: reason -> explore -> verify -> repeat"
     )
-    sp.add_argument("--model", default=os.environ.get("SAPPER_MODEL", "sonnet"))
-    sp.add_argument("--timeout", type=int, default=int(os.environ.get("SAPPER_TIMEOUT", "600")))
+    sp.add_argument("--model", default=os.environ.get("NOPPER_MODEL", "sonnet"))
+    sp.add_argument("--timeout", type=int, default=int(os.environ.get("NOPPER_TIMEOUT", "600")))
     sp.add_argument("--templates", default=None)
     sp.add_argument("--skip-permissions", action="store_true")
     sp.add_argument("--dry-run", action="store_true", help="reason only, no explore")
@@ -4453,7 +4453,7 @@ def build_parser() -> argparse.ArgumentParser:
 def _resolve_templates_dir(args) -> Path:
     if args.templates:
         return Path(args.templates)
-    # default: sibling `templates/` next to the store, else next to sapper.py
+    # default: sibling `templates/` next to the store, else next to nopper.py
     store_root = Path(args.store).resolve()
     cand = store_root.parent / "templates"
     if cand.exists():
@@ -4470,7 +4470,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         return args.func(args)
     except FGError as exc:
-        sys.stderr.write(f"sapper: {exc}\n")
+        sys.stderr.write(f"nopper: {exc}\n")
         return 1
     except BrokenPipeError:
         return 0

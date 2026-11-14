@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-kb — a shared, offline knowledge base for sapper agents.
+kb — a shared, offline knowledge base for nopper agents.
 
 One JSON file per entry, stored under a kb root (default: the `kb/` directory
-shipped inside the sapper repo, so the knowledge base travels with the git
-clone and works air-gapped on a match CVM; override with SAPPER_KB_ROOT or
+shipped inside the nopper repo, so the knowledge base travels with the git
+clone and works air-gapped on a match CVM; override with NOPPER_KB_ROOT or
 --root). Any number of agents / graphs share the same base.
 
 Entry shape (kb/entries/kb001.json):
@@ -21,7 +21,7 @@ Entry shape (kb/entries/kb001.json):
     }
 
 Search = token-overlap scoring (title weighted x2, plus description + tags),
-same zero-dependency approach as `sapper recall`. Stdlib only.
+same zero-dependency approach as `nopper recall`. Stdlib only.
 """
 from __future__ import annotations
 
@@ -63,7 +63,7 @@ class KnowledgeBase:
     @classmethod
     def default_root(cls) -> Path:
         import os
-        env = os.environ.get("SAPPER_KB_ROOT")
+        env = os.environ.get("NOPPER_KB_ROOT")
         if env:
             return Path(env).expanduser()
         # the kb/ shipped next to lib/ in this repo
@@ -81,7 +81,7 @@ class KnowledgeBase:
             try:
                 data = json.loads(p.read_text(encoding="utf-8"))
             except (json.JSONDecodeError, OSError, UnicodeDecodeError) as exc:
-                sys.stderr.write(f"sapper: warning: skipping bad kb entry {p.name}: {exc}\n")
+                sys.stderr.write(f"nopper: warning: skipping bad kb entry {p.name}: {exc}\n")
                 continue
             if isinstance(data, dict) and isinstance(data.get("id"), str):
                 out.append(data)

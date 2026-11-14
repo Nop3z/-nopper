@@ -2,7 +2,7 @@
 """
 _settings_patch — idempotently add/remove fact-graph hooks in ANY Claude Code
 settings.json (project-level `<dir>/.claude/settings.json` or user-level
-`~/.claude/settings.json`). Called by `sapper enable`/`sapper disable` and by
+`~/.claude/settings.json`). Called by `nopper enable`/`nopper disable` and by
 `install.sh --global-hooks`.
 
 A hook block looks like:
@@ -10,10 +10,10 @@ A hook block looks like:
   {
     "hooks": {
       "SessionStart": [
-        {"matcher": "", "hooks": [{"type":"command","command":"python3 /abs/sapper-hook.py sessionstart"}]}
+        {"matcher": "", "hooks": [{"type":"command","command":"python3 /abs/nopper-hook.py sessionstart"}]}
       ],
       "UserPromptSubmit": [
-        {"matcher": "", "hooks": [{"type":"command","command":"python3 /abs/sapper-hook.py userpromptsubmit"}]}
+        {"matcher": "", "hooks": [{"type":"command","command":"python3 /abs/nopper-hook.py userpromptsubmit"}]}
       ]
     }
   }
@@ -34,7 +34,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-MARKER = "sapper-hook.py"
+MARKER = "nopper-hook.py"
 
 # (hook event name, argv position passed to fg-hook)
 HOOK_EVENTS = [
@@ -71,12 +71,12 @@ def _load_settings(settings_path: Path) -> dict:
     except json.JSONDecodeError as exc:
         raise ValueError(
             f"{settings_path} is not valid JSON ({exc.msg} at line {exc.lineno}). "
-            f"Fix it by hand before re-running sapper setup."
+            f"Fix it by hand before re-running nopper setup."
         )
     except UnicodeDecodeError as exc:
         raise ValueError(
             f"{settings_path} is not valid UTF-8 ({exc}). "
-            f"Fix it by hand before re-running sapper setup."
+            f"Fix it by hand before re-running nopper setup."
         )
     if not isinstance(data, dict):
         raise ValueError(f"{settings_path} must contain a JSON object at the top level")
@@ -225,13 +225,13 @@ def remove(settings_path: Path, hook_script: str = "") -> tuple[bool, list[str]]
 def main(argv: list[str]) -> int:
     if len(argv) < 2 or argv[1] not in ("add", "remove"):
         sys.stderr.write(
-            "usage: _settings_patch.py {add|remove} <abs-sapper-hook.py> [settings.json]\n"
+            "usage: _settings_patch.py {add|remove} <abs-nopper-hook.py> [settings.json]\n"
             "  (settings.json defaults to the user-level ~/.claude/settings.json)\n"
         )
         return 2
     # `add` requires the hook script path; `remove` can infer it (review codex#10)
     if argv[1] == "add" and len(argv) < 3:
-        sys.stderr.write("usage: _settings_patch.py add <abs-sapper-hook.py> [settings.json]\n")
+        sys.stderr.write("usage: _settings_patch.py add <abs-nopper-hook.py> [settings.json]\n")
         return 2
     if len(argv) >= 3:
         hook_script = str(Path(argv[2]).resolve())

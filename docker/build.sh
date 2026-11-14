@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# build.sh — build the sapper agent image and export it for TSecBench upload.
+# build.sh — build the nopper agent image and export it for TSecBench upload.
 #
-#   bash docker/build.sh              # build + export dist/sapper-agent.tar.gz
+#   bash docker/build.sh              # build + export dist/nopper-agent.tar.gz
 #   bash docker/build.sh --no-export  # build only
 #
 # TSecBench accepts .tar / .tar.gz / .tgz up to 3GB.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IMAGE="${IMAGE:-sapper-agent:latest}"
-OUT="${OUT:-$REPO/dist/sapper-agent.tar.gz}"
+IMAGE="${IMAGE:-nopper-agent:latest}"
+OUT="${OUT:-$REPO/dist/nopper-agent.tar.gz}"
 
 cd "$REPO"
 

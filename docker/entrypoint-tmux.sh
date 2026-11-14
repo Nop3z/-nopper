@@ -9,8 +9,8 @@
 # container.
 set -uo pipefail
 
-log() { printf '[sapper-tmux] %s\n' "$*"; }
-die() { printf '[sapper-tmux] FATAL: %s\n' "$*" >&2; exit 1; }
+log() { printf '[nopper-tmux] %s\n' "$*"; }
+die() { printf '[nopper-tmux] FATAL: %s\n' "$*" >&2; exit 1; }
 
 [[ -n "${BENCHMARK_BASE_URL:-}" ]] || die "BENCHMARK_BASE_URL is not set"
 [[ -n "${BENCHMARK_TOKEN:-}" ]] || die "BENCHMARK_TOKEN is not set"
@@ -29,7 +29,7 @@ JSON
 
 log "platform = $BENCHMARK_BASE_URL"
 log "gateway  = $ANTHROPIC_BASE_URL"
-log "model    = ${SAPPER_MODEL:-glm-5.3-flash[1m]} (interactive TUI x ${SAPPER_PARALLEL:-3})"
+log "model    = ${NOPPER_MODEL:-glm-5.3-flash[1m]} (interactive TUI x ${NOPPER_PARALLEL:-3})"
 
 case "$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 \
         -H "BENCHMARK_TOKEN: $BENCHMARK_TOKEN" \
@@ -38,18 +38,18 @@ case "$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 \
   *)  die "cannot reach the challenges API" ;;
 esac
 
-ROOT="${SAPPER_ROOT:-/work/runs}"
+ROOT="${NOPPER_ROOT:-/work/runs}"
 mkdir -p "$ROOT"
 
 start_driver_window() {
-  tmux new-window -d -t sapper-tui -n supervisor "bash /opt/sapper/docker/tmux-drive.sh 2>&1 | tee -a $ROOT/drive.err"
+  tmux new-window -d -t nopper-tui -n supervisor "bash /opt/nopper/docker/tmux-drive.sh 2>&1 | tee -a $ROOT/drive.err"
 }
 
 # detached fleet session; window 0 becomes the supervisor
-tmux new-session -d -s sapper-tui -n boot "exec sleep infinity"
+tmux new-session -d -s nopper-tui -n boot "exec sleep infinity"
 start_driver_window
-tmux kill-window -t sapper-tui:boot 2>/dev/null
-log "tmux session 'sapper-tui' up (supervisor driving)"
+tmux kill-window -t nopper-tui:boot 2>/dev/null
+log "tmux session 'nopper-tui' up (supervisor driving)"
 
 # watchdog: stream logs for the platform AND resurrect the driver if it dies.
 # The driver itself is idempotent (adopts existing windows), so a respawn
@@ -59,12 +59,12 @@ tail -F -n0 "$ROOT/drive.log" "$ROOT/drive.err" &
 TAIL_PID=$!
 while true; do
   sleep 30
-  if ! tmux has-session -t sapper-tui 2>/dev/null; then
+  if ! tmux has-session -t nopper-tui 2>/dev/null; then
     log "WATCHDOG: tmux session gone — recreating"
-    tmux new-session -d -s sapper-tui -n boot "exec sleep infinity"
+    tmux new-session -d -s nopper-tui -n boot "exec sleep infinity"
     start_driver_window
-    tmux kill-window -t sapper-tui:boot 2>/dev/null
-  elif ! tmux list-windows -t sapper-tui -F '#W' 2>/dev/null | grep -q '^supervisor$'; then
+    tmux kill-window -t nopper-tui:boot 2>/dev/null
+  elif ! tmux list-windows -t nopper-tui -F '#W' 2>/dev/null | grep -q '^supervisor$'; then
     log "WATCHDOG: supervisor window gone — respawning driver"
     start_driver_window
   fi

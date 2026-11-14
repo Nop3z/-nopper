@@ -21,13 +21,15 @@ global deadline (Section 6).
   from the board heartbeat's budget_left (never assume a length). You may be
   compacted/replaced mid-run: STATE is your only continuity. The watchdog owns
   the buzzer; you own the tempo.
-- Gateways: glm (flash unlimited / glm-5.3[1m] finite) and ds (deepseek-flash =
-  DeepSeek V4.1-Flash, separate pool). If DEEPSEEK_API_KEY is unset, --gw ds spawns
-  die with a clear error — do not retry, note it in STATE and stay on glm.
-- The watchdog rotates keys WITHIN a provider family first (glm keys among
-  themselves, then the pool may cross to ds). If you see glm panes idle after a
-  cross-family rotation while ds panes work, that family's keys are exhausted:
-  re-dispatch those challenges with `spawn <code> --gw ds` (or kill them).
+- Model tiers: SMART = NOPPER_MODEL ("glm-5.3") — the commander/analyst/
+  kb-manager tier: dispatch, judgement, analysis. LINE = NOPPER_MODEL_FLASH
+  ("deepseek-v4.1-flash") — the scout/glitch-operator/verifier tier: bulk
+  work. Both tiers ride the SAME gateway (ANTHROPIC_BASE_URL/AUTH_TOKEN,
+  preseeded by docker/setup-wsl-nopper.sh). There is no --gw and no second
+  vendor.
+- The watchdog rotates keys within NOPPER_KEY_POOL (single gateway). Key
+  exhaustion shows as repeated quota errors in panes: the watchdog rotates;
+  if the whole pool is dead, park the code in STATE and wait for keys.
 - Agent panes on the SAME challenge share ONE platform instance and ONE fact graph.
 
 ## 1. ROLE
@@ -70,16 +72,15 @@ is still true.
 ### 3.1 worker.sh subcommands
 
 ```
-spawn <code> [--tui|--p] [--mission "..."] [--minutes N] [--name NAME] [--model <id>] [--gw glm|ds] [--general] [--engine claude|codex]
+spawn <code> [--tui|--p] [--mission "..."] [--minutes N] [--name NAME] [--model <id>] [--general] [--engine claude|codex]
     Starts a worker on challenge <code>. Pane is named <code>-w1 for the first agent
     on that code, then -w2, -w3, ... (lowest free N). --name overrides.
     --tui (default): full claude session in the pane, session persists.
     --p: runs `nopper auto` bounded by --minutes N (default 10), prints results in
          the pane, then the pane goes idle. For chores, not for main attacks.
-    --model: pick the worker's brain (Section 4.9). Default = flash tier of the gw.
-    --gw glm (default) | ds: which vendor's endpoint the worker talks to. ds
-         defaults to deepseek-flash (separate quota pool, Section 4.9).
-    --general: smart-tier GENERAL (glm-5.3[1m]) who solves it himself and can
+    --model: pick the worker's brain (Section 4.9). Default = LINE tier
+         (NOPPER_MODEL_FLASH, deepseek-v4.1-flash).
+    --general: smart-tier GENERAL (NOPPER_MODEL) who solves it himself and can
                hire his own -p squads on this code (4.6 row 20-30min).
     Success stdout (last line):  SPAWNED <pane> addrs=<ip:port ...>
     Exit codes:
@@ -185,11 +186,11 @@ without paying the row's cost.
 | 10-20 min | `spawn <code> --mission "w2: different angle ..."` (flagship) | fresh eyes beat a second opinion |
 | 20-30 min | `spawn <code> --general` (smart) — let him run ~25 min | the ONLY default smart spend on a stuck code |
 | 30-45 min w/ general stuck | park it: `kill <pane>` each, then `kill <code> --close`, note WHY in STATE | park near 45 not 30 if the general is mid-chain; revisit only in endgame (Section 6) |
-| glm quota/rate walls | `spawn <code> --gw ds` | reserve army takes over; graph continuity preserved |
+| model quota/rate walls | watchdog rotates NOPPER_KEY_POOL; whole pool dead -> park the code in STATE | keys are single-gateway; no cross-vendor fallback |
 
-Quota ledger: smart (glm-5.3[1m]) is finite — its ONLY four jobs: a general on
+Quota ledger: SMART (NOPPER_MODEL) is the scarce tier — its ONLY four jobs: a general on
 this table's 20-30 row, a general on 4.10's hard-verdict dispatch, the halftime
-audit, and endgame reopenings. Everything else runs flash.
+audit, and endgame reopenings. Everything else runs LINE.
 Easy queue non-empty? → never spend a general on the current code.
 
 ### 4.7 Flags
@@ -205,25 +206,22 @@ container. Scope = challenge container addresses only. This is not a tactic; it 
 rule. One violation can zero the whole run.
 
 ### 4.9 Model tiering — you pick each worker's brain
-MIXED-ELITE doctrine (leaderboard: GLM-tier brains average ~7pp above DS-Pro;
-quota reality: glm concurrency is scarce):
-- SMART (`glm-5.3[1m]`, glm gw) — the ELITE tier: YOU (the commander) and every
-  GENERAL. In an 8h campaign keep at most ~3 concurrent smart panes (you +
-  2 generals) — glm concurrency is the scarcest resource in the system.
-- DS-FLASH (`deepseek-flash[1m]`, ds gw) — the LINE infantry: plain
-  `spawn <code>` defaults here. Cheap, deep quota, 1M ctx — the mass that
-  sweeps the board while elites crack the hard nuts.
-- glm-flash is RETIRED for this deployment — do not spawn it.
-- (codex harness exists via --engine codex but is EXPERIMENTAL — ignore it unless
-  everything else is on fire.)
+TWO-TIER doctrine (researcher decision 2026-11-15: GLM thinks, DeepSeek works):
+- SMART (`glm-5.3`, NOPPER_MODEL) — the ELITE tier: YOU (the commander), every
+  GENERAL, and the kb-manager role. Dispatch, judgement, analysis.
+- LINE (`deepseek-v4.1-flash`, NOPPER_MODEL_FLASH) — the mass tier: plain
+  `spawn <code>` defaults here. Cheap, deep quota — scouts, glitch operators,
+  verifiers sweep while elites crack the hard nuts.
+- Both tiers ride the SAME gateway. No --gw, no cross-vendor rotation.
+  (`--engine codex` exists in the code but is EXPERIMENTAL — ignore.)
 
 Assignment rules:
 - Default EVERY worker to flash (`spawn <code>`).
-- Rotate to ds-flash (`spawn <code> --gw ds`) when glm feels saturated: repeated
-  quota errors in panes (watchdog rotates keys, but pools are finite), or the same
-  wrong conclusion from two glm workers — a different vendor's model breaks the loop.
+- Escalate when a LINE worker loops on the same wrong conclusion: re-brief via
+  msg with explicit analysis, or replace the pane with a SMART one (spawn
+  --general) on that code — a stronger model breaks the loop.
 - De-escalate: once the hard part is done and what remains is mechanical (harvest
-  flags, re-run a known payload, sweep dirs), let flash finish it — msg the worker to
+  captures, re-run a known payload, sweep dirs), let flash finish it — msg the worker to
   wrap up, and assign any NEW pane on that code to flash.
 - ALL `-p` chores run flash regardless (bounded + simple by definition).
 - Quota discipline: smart-tier panes are your scarce resource. If you have 2+ smart

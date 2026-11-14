@@ -31,11 +31,10 @@ LOG="$ROOT/drive.log"
 #   scout, chore, general alike. flash is retired from this deployment.
 #   ds gw (deepseek-flash) is the RESERVE army: takes over when glm quota/
 #   rate limits bite (the watchdog rotates; the commander may also spawn
-#   --gw ds deliberately under quota pressure).
 # mixed doctrine: soldiers default to the ds tier (cheap mass), generals and
 # the commander run NOPPER_MODEL (the strong brain) — the general-escalation
 # below fires when model==MODEL, which holds for this default.
-# NOTE: inline NOPPER_MODEL_DS (DS_MODEL is defined LATER in this header —
+# NOTE: DS_* below are used ONLY by the experimental --engine codex branch (not the gateway path; single-gateway since 2026-11-15). Inline NOPPER_MODEL_DS (DS_MODEL is defined LATER in this header —
 # referencing it here silently fell back to glm and killed the ds army).
 MODEL="${NOPPER_MODEL_DS:-${NOPPER_MODEL:-glm-5.3[1m]}}"
 DS_MODEL="${NOPPER_MODEL_DS:-deepseek-flash}"
@@ -193,15 +192,13 @@ default_mission() {  # default_mission <code> <addrs> <primary 0|1>
 
 # ---- spawn -------------------------------------------------------------------
 cmd_spawn() {
-  local code="" mode=tui mission="" minutes=$DEF_MINUTES name="" model="" gw="" engine=claude general=0 a
+  local code="" mode=tui mission="" minutes=$DEF_MINUTES name="" model="" engine=claude general=0 a
   while (( $# )); do
     a=$1; shift
     case "$a" in
       --tui) mode=tui ;;
       --p|-p) mode=p ;;
       --general) general=1 ;;
-      --gw) [[ $# -gt 0 ]] || die 1 "spawn: --gw needs a value (glm|ds)"; gw=$1; shift ;;
-      --gw=*) gw=${a#*=} ;;
       --engine) [[ $# -gt 0 ]] || die 1 "spawn: --engine needs a value (claude|codex)"; engine=$1; shift ;;
       --engine=*) engine=${a#*=} ;;
       --mission) [[ $# -gt 0 ]] || die 1 "spawn: --mission needs a value"; mission=$1; shift ;;
@@ -216,23 +213,16 @@ cmd_spawn() {
       *) [[ -z "$code" ]] || die 1 "spawn: unexpected argument $a"; code=$a ;;
     esac
   done
-  [[ -z "$gw" || "$gw" == glm || "$gw" == ds ]] || die 1 "spawn: --gw must be glm or ds (got '$gw')"
   [[ "$engine" == claude || "$engine" == codex ]] || die 1 "spawn: --engine must be claude or codex"
-  [[ -n "$code" ]] || die 1 "usage: worker.sh spawn <code> [--tui|--p] [--mission \"...\"] [--minutes N] [--name NAME] [--model <id>] [--gw glm|ds] [--engine claude|codex]"
-  [[ "$gw" == ds && -z "$DS_KEY" && "$engine" == claude ]] \
-    && die 1 "spawn: --gw ds needs DEEPSEEK_API_KEY (unset — ask the operator, do not retry)"
+  [[ -n "$code" ]] || die 1 "usage: worker.sh spawn <code> [--tui|--p] [--mission \"...\"] [--minutes N] [--name NAME] [--model <id>] [--engine claude|codex]"
   # default model per gateway: glm->flash tier, ds->deepseek-flash;
   # a GENERAL defaults to the smart tier (SKILL 4.10). NOTE: compare with
   # quoted `==` — unquoted/glob paths treat the [1m] suffix as a char class
   # and silently never match.
-  [[ -n "$model" ]] || { [[ "$gw" == ds ]] && model="$DS_MODEL" || model="$MODEL"; }
-  if (( general )) && [[ "$gw" == glm && "$model" == "$MODEL" ]]; then
-    model="${NOPPER_MODEL:-glm-5.3[1m]}"
-  fi
-  # gateway auto-derives from the FINAL model's family (mixed doctrine: the
+  [[ -n "$model" ]] || model="${NOPPER_MODEL_FLASH:-deepseek-v4.1-flash}"
+  if (( general )); then model="${NOPPER_MODEL:-glm-5.3}"; fi
+  # (single gateway: no family inference; the model name IS the tier)
   # default soldier model is deepseek — its name on the glm gateway 404s,
-  # which killed every soldier pane in a live run). Explicit --gw wins.
-  [[ -z "$gw" ]] && { case "$model" in *deepseek*) gw=ds;; *) gw=glm;; esac; }
   is_code "$code" || die 1 "spawn: invalid code '$code'"
   [[ "$minutes" =~ ^[0-9]+$ ]] || die 1 "spawn: --minutes must be an integer (got '$minutes')"
   tmux has-session -t "$SESSION" 2>/dev/null \
@@ -296,11 +286,8 @@ cmd_spawn() {
   local mission_b64=""
   [[ "$mode" == tui && "$engine" == claude && -n "$mission" ]] \
     && mission_b64=$(printf '%s' "$mission" | base64 -w0)
-  printf 'MODEL=%s\nGW=%s\nENGINE=%s\nMISSION_B64=%s\n' \
-    "$model" "$gw" "$engine" "$mission_b64" > "$PANE_ENV_DIR/$pane.env"
-  # per-pane gateway env: ds panes override ANTHROPIC_* with the deepseek endpoint
-  local gw_env=""
-  [[ "$gw" == ds ]] && gw_env="ANTHROPIC_BASE_URL='$DS_BASE_URL' ANTHROPIC_AUTH_TOKEN='$DS_KEY'"
+  printf 'MODEL=%s\nENGINE=%s\nMISSION_B64=%s\n' \
+    "$model" "$engine" "$mission_b64" > "$PANE_ENV_DIR/$pane.env"
   if [[ "$mode" == tui ]]; then
     if [[ "$engine" == codex ]]; then
       # codex 0.42: provider via -c overrides on top of ~/.codex/config.toml
@@ -310,7 +297,7 @@ cmd_spawn() {
         "cd $dir && DEEPSEEK_API_KEY='$DS_KEY' codex --skip-git-repo-check -c model_provider=$provider -c model='$model' --dangerously-bypass-approvals-and-sandbox 2>&1; echo DRIVE_PANE_EXITED; exec sleep infinity"
     else
       tmux new-window -d -t "$SESSION" -n "$pane" \
-        "cd $dir && $gw_env claude --model '$model' --effort max --dangerously-skip-permissions 2>&1; echo DRIVE_PANE_EXITED; exec sleep infinity"
+        "cd $dir && claude --model '$model' --effort max --dangerously-skip-permissions 2>&1; echo DRIVE_PANE_EXITED; exec sleep infinity"
     fi
   else
     if [[ "$engine" == codex ]]; then
@@ -322,7 +309,7 @@ cmd_spawn() {
       return 0
     else
       tmux new-window -d -t "$SESSION" -n "$pane" \
-        "cd $dir && $gw_env NOPPER_MODEL='$model' $NOPPER --store $ROOT/$code/.nopper auto --minutes $minutes --skip-permissions 2>&1; echo DRIVE_PANE_EXITED; exec sleep infinity"
+        "cd $dir && NOPPER_MODEL='$model' $NOPPER --store $ROOT/$code/.nopper auto --minutes $minutes --skip-permissions 2>&1; echo DRIVE_PANE_EXITED; exec sleep infinity"
     fi
   fi
 
@@ -672,7 +659,7 @@ usage() {
   cat >&2 <<'USAGE'
 worker.sh — the commander's hands (one-shot subcommands; no main loop)
   spawn <code> [--tui|--p] [--mission "..."] [--minutes N] [--name NAME] [--model <id>]
-                                     [--gw glm|ds] [--engine claude|codex] [--general]
+                                     [--engine claude|codex] [--general]
                                      --model: worker brain (default flash tier; smart =
                                      'glm-5.3[1m]' — SKILL 4.9 tiering rules)
                                      --general: smart-tier GENERAL that may hire its own

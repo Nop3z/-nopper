@@ -19,9 +19,8 @@
 |---|---|---|
 | `ANTHROPIC_BASE_URL` | `https://open.bigmodel.cn/api/anthropic` | 直连厂商公开端点 |
 | `ANTHROPIC_AUTH_TOKEN` | 你的 API Key | 换供应商只改这项和 BASE_URL |
-| `NOPPER_MODEL` | `glm-5.3-flash[1m]` | 已实测走通。`[1m]` 后缀由 claude CLI 解析为 1M 上下文（剥后缀 + beta 头），API 侧模型名仍是 glm-5.3-flash，直接填 `glm-5.3-flash-1m` 会报模型不存在 |
-| `NOPPER_MODEL_FLASH` | `glm-5.3-flash[1m]` | 便宜档（tmux 镜像） |
-| `NOPPER_MODEL_DS` | `deepseek-flash` | ds 网关模型 |
+| `NOPPER_MODEL` | `glm-5.3` | 智能档（战役指挥官/固件分析师/知识管理员：调度思考抉择）。由 docker/setup-wsl-nopper.sh 预置 |
+| `NOPPER_MODEL_FLASH` | `deepseek-v4.1-flash` | 便宜档（侦察分析员/毛刺操作员/验证员：干活量产），同一网关 |
 
 ### Key 池自动轮换（强烈建议配置）
 
@@ -29,7 +28,7 @@
 
 | KEY | VALUE 格式 |
 |---|---|
-| `NOPPER_KEY_POOL` | `[{"base_url":"https://open.bigmodel.cn/api/anthropic","token":"key1","model":"glm-5.3-flash[1m]"},{"base_url":"https://api.moonshot.cn/v1","token":"key2","model":"kimi-k2.5"}]` |
+| `NOPPER_KEY_POOL` | `[{"base_url":"<网关地址>","token":"key1","model":"glm-5.3"},{"base_url":"<网关地址>","token":"key2","model":"deepseek-v4.1-flash"}]` | 同网关两档模型的 key 池（watchdog 轮换） |
 
 注意：池里各组 URL 直连各厂商公开端点。单 Key 时轮换自动退化为普通重试。
 

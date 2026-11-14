@@ -70,9 +70,6 @@ if ! printf 'reply with the single word: ok' \
 else
   log "model CLI ok: $(head -c 60 /tmp/smoke.txt)"
 fi
-[[ -n "${DEEPSEEK_API_KEY:-}" ]] \
-  && log "ds gateway armed: deepseek-flash via ${DEEPSEEK_BASE_URL:-https://api.deepseek.com/anthropic}" \
-  || log "NOTE: DEEPSEEK_API_KEY unset — --gw ds workers unavailable (glm-only)"
 
 # ---- pane primitives (verbatim from tmux-drive.sh) -------------------------
 pane_text() { tmux capture-pane -pt "$SESSION:$1" 2>/dev/null; }

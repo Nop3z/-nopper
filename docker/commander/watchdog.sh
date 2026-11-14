@@ -225,6 +225,7 @@ sync_session_env() {  # tmux panes inherit the SESSION environment, NOT this
   done
 }
 
+# DS_* below: ONLY for the experimental --engine codex relaunch path (single-gateway otherwise)
 DS_MODEL="${NOPPER_MODEL_DS:-deepseek-flash}"
 DS_BASE_URL="${DEEPSEEK_BASE_URL:-https://api.deepseek.com/anthropic}"
 DS_KEY="${DEEPSEEK_API_KEY:-}"

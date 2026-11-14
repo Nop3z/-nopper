@@ -602,8 +602,13 @@ print(f"[board] heartbeat: codes={len(rows)} done={done_n} "
 def kinds_str(k):
     if not k:
         return "-"
-    order = ["host", "service", "cred", "vuln", "loot", "flag", "note"]
-    parts = [f"{n[0]}{k[n]}" for n in order if k.get(n)]
+    order = ["device", "chip", "board", "interface", "firmware_image",
+             "probe_point", "vulnerability", "glitch_param", "glitch_result",
+             "scan_campaign", "power_profile", "analysis_note",
+             "repro_confirmed", "flag"]
+    # two-letter kind codes (single letters collide: glitch_param/glitch_result,
+    # probe_point/power_profile) — e.g. de1 ch2 gp12 gr3
+    parts = [f"{n[:2]}{k[n]}" for n in order if k.get(n)]
     parts += [f"{n[:2]}{v}" for n, v in sorted(k.items()) if n not in order]
     return (" ".join(parts) or "-")[:16]
 

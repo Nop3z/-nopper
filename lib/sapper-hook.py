@@ -122,8 +122,11 @@ def sessionstart() -> int:
         "confirmed vs. tried:\n"
         "  - read it with `sapper status` / `sapper graph` before starting work\n"
         "  - record confirmed results with `sapper fact` / `sapper done`\n"
-        "    (typed kinds: host/service/cred/vuln/loot/flag, with -d key=value data)\n"
-        "  - capture flags immediately: `sapper flag \"flag{...}\" -c <challenge>`\n"
+        "    (typed kinds: device/chip/board/interface/firmware_image/probe_point/\n"
+        "     vulnerability/glitch_param/glitch_result/scan_campaign/power_profile/\n"
+        "     analysis_note/repro_confirmed, with -d key=value data; set\n"
+        "     evidence_level=observation|hypothesis|unknown and confidence=low|medium|high)\n"
+        "  - record a captured result immediately: `sapper flag \"<value>\" -c <campaign>`\n"
         "  - propose next steps into it with `sapper dispatch reason`\n"
     )
     payload = {

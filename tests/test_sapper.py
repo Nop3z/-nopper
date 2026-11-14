@@ -305,27 +305,32 @@ class TypedFactTests(unittest.TestCase):
 
     def test_typed_fact_roundtrip_and_render(self):
         fact = self.store.add_fact(
-            "nginx 1.18 at 10.0.2.15:80", "user",
-            kind="service", data={"host": "10.0.2.15", "port": 80},
+            "SWD interface on target chip, pins PA13/PA14", "user",
+            kind="interface", data={"chip": "stm32f103", "pins": "PA13,PA14", "baud": "0"},
         )
-        self.assertEqual(fact["kind"], "service")
-        self.assertEqual(fact["data"]["port"], "80")
+        self.assertEqual(fact["kind"], "interface")
+        self.assertEqual(fact["data"]["pins"], "PA13,PA14")
         text = sapper.render_graph_text(self.store)
-        self.assertIn("<service>", text)
-        self.assertIn("port=80", text)
+        self.assertIn("<interface>", text)
+        self.assertIn("pins=PA13,PA14", text)
         yaml = sapper._to_yaml_like(sapper.build_graph_view(self.store))
-        self.assertIn("<service>", yaml)
+        self.assertIn("<interface>", yaml)
         # prompt rendering scrubs braces so flag{...} cannot eat placeholders
-        self.assertIn("port=80", yaml)
+        self.assertIn("pins=PA13,PA14", yaml)
 
     def test_unknown_kind_and_bad_data_rejected(self):
         with self.assertRaises(sapper.FGError):
             self.store.add_fact("x", "user", kind="exploit")
         with self.assertRaises(sapper.FGError):
-            self.store.add_fact("x", "user", kind="cred", data={"bad key!": "1"})
+            self.store.add_fact("x", "user", kind="cred")
+        with self.assertRaises(sapper.FGError):
+            self.store.add_fact("x", "user", kind="host")
+        with self.assertRaises(sapper.FGError):
+            self.store.add_fact(
+                "x", "user", kind="interface", data={"bad key!": "1"})
 
     def test_validate_rejects_invalid_kind_on_disk(self):
-        fact = self.store.add_fact("x", "user", kind="cred")
+        fact = self.store.add_fact("x", "user", kind="interface")
         p = self.store.facts_dir / f"{fact['id']}.json"
         node = json.loads(p.read_text(encoding="utf-8"))
         node["kind"] = "exploit"
@@ -335,13 +340,78 @@ class TypedFactTests(unittest.TestCase):
 
     def test_explore_payload_carries_kind_and_data(self):
         payload = {"accepted": True, "data": {
-            "description": "RCE confirmed",
-            "kind": "vuln",
-            "data": {"cve": "CVE-2021-41773"},
+            "description": "glitch hit confirmed",
+            "kind": "glitch_result",
+            "data": {"outcome": "success", "attempts": "12"},
         }}
         title, desc, doc, kind, data = sapper._parse_explore_payload(payload)
-        self.assertEqual(kind, "vuln")
-        self.assertEqual(data, {"cve": "CVE-2021-41773"})
+        self.assertEqual(kind, "glitch_result")
+        self.assertEqual(data, {"outcome": "success", "attempts": "12"})
+
+
+class EvidenceLevelSoftWarningTests(unittest.TestCase):
+    """C6: evidence_level/confidence are advisory — warn, never reject."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.store = sapper.Store(Path(self.tmp.name) / ".sapper")
+        self.store.init("test", "glitch the boot rom")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_valid_metadata_produces_no_warnings(self):
+        self.store.add_fact(
+            "single success at ext_offset=47", "user",
+            kind="glitch_result",
+            data={"evidence_level": "observation", "confidence": "high"},
+        )
+        self.assertEqual(sapper.fact_soft_warnings(self.store), [])
+
+    def test_missing_metadata_warns_but_fact_stays_valid(self):
+        self.store.add_fact("suspicious timing", "user", kind="glitch_result")
+        warns = sapper.fact_soft_warnings(self.store)
+        self.assertTrue(any("evidence_level" in w for w in warns))
+        self.assertTrue(any("confidence" in w for w in warns))
+        # hard errors stay empty: the fact is valid
+        self.assertEqual(sapper.validate_graph(self.store), [])
+
+    def test_out_of_vocabulary_value_warns(self):
+        self.store.add_fact(
+            "guess", "user",
+            kind="vulnerability",
+            data={"evidence_level": "certainty", "confidence": "certain"},
+        )
+        warns = sapper.fact_soft_warnings(self.store)
+        self.assertTrue(any("'evidence_level'" in w and "certainty" in w for w in warns))
+        self.assertTrue(any("'confidence'" in w and "certain" in w for w in warns))
+        self.assertEqual(sapper.validate_graph(self.store), [])
+
+    def test_unknown_literal_accepted_for_both_fields(self):
+        self.store.add_fact(
+            " unsure note", "user",
+            kind="analysis_note",
+            data={"evidence_level": "unknown", "confidence": "unknown"},
+        )
+        self.assertEqual(sapper.fact_soft_warnings(self.store), [])
+
+    def test_untyped_fact_skipped(self):
+        self.store.add_fact("plain observation", "user")
+        self.assertEqual(sapper.fact_soft_warnings(self.store), [])
+
+    def test_cmd_validate_prints_warnings_without_failing(self):
+        import io
+        import contextlib
+        self.store.add_fact("no metadata yet", "user", kind="glitch_result")
+        stdout = io.StringIO()
+        args = type("A", (), {"store": str(self.store.root)})()
+        with contextlib.redirect_stdout(stdout):
+            rc = sapper.cmd_validate(args)
+        text = stdout.getvalue()
+        self.assertEqual(rc, 0)
+        self.assertIn("graph valid", text)
+        self.assertIn("soft warnings", text)
+        self.assertIn("evidence_level", text)
 
 
 class FlagLedgerTests(unittest.TestCase):

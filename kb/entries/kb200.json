@@ -1,0 +1,17 @@
+{
+  "id": "kb200",
+  "verified": false,
+  "title": "负知识：kb 维度空白清单（采集不足以支撑条目的区域）",
+  "description": "本次蒸馏暴露的方法学空白，供后续采集规划",
+  "detail": "空白与薄弱维度（139 案例盘点结论）：1) 激光类窗口确定法——只有 RP2350 三案（63/96/287）与 ATECC608A（138）给出可操作定位法（PEM 差分、双镜像 diff、功耗 trace 间隔），普遍依赖去盖/贵设备；缺少预算级窗口确定法样本（courk 的 budget 路线代码侧有 Glasgow/playground 但扫参脚本未公开）；2) 时钟毛格——仅 3 个 clock-glitch 案例（01/03/284）且均为 CW 官方教程/靶，缺少真实产品上的时钟毛格实战样本（petite-mort 201 是 clock 注入但归 voltage-glitch 目录）；3) 温度注入——案例 137 仅索引级（418），维度几乎空白；4) BBI 体偏置注入——249 无直链，第五类物理通道空白；5) 汽车类——194/195/248/97 四案中三案待人工 PDF/视频，可操作知识缺失；6) 非 nopper 工具的判定标准——多数工具不带判定（44/46/117/191 等），判定全靠目标侧自建；7) EMFI 时序锚的多样化——除 SPI CS/UART/GPIO 外缺少更多真实产品锚点样本；8) 复现成功率谱系——多案例只给单点成功无成功率统计，影响 confirmed 阈值校准。建议后续采集优先补 1/2/5。",
+  "tags": [
+    "negative-knowledge",
+    "gaps",
+    "planning"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/laser-optical/63-rp2350-laser-courk + cases/laser-optical/96-rp2350-donjon-photon-emission + cases/laser-optical/138-sstic2021-atecc608a-laser + cases/clock-glitch/284-clockfaultinjector + cases/other/137-smartcard-temperature-fi + cases/other/249-colinoflynn-bbi-wlcsp-cardis2020 + cases/emfi/194-emfi-automotive-safety-fdtc21 + cases/voltage-glitch/97-mercedes-immobilizer-overvoltage",
+  "created_at": "2026-11-15T00:00:00Z"
+}

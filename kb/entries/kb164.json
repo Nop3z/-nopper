@@ -1,0 +1,17 @@
+{
+  "id": "kb164",
+  "verified": false,
+  "title": "防御：'先整片擦除才解锁'设计缺陷与 flash erase suppression",
+  "description": "mass-erase-first 策略被毛格抑制后双向失守",
+  "detail": "缺陷模式：许多 MCU 的调试保护策略是'关闭调试保护=先整片擦除'，攻击者用毛格抑制 mass erase——flash 内容保留、调试接口却已解锁，直接读出'被保护'的敏感内容（cases/talks/161-camp2023-flash-erase-suppression，学术源头 Schink et al. CHES 2021）。攻防两读：1) 攻击面——毛格命中 mass erase 执行相位；窗口即'调试解锁=整片擦除'策略的执行期；判定=调试接口激活且 flash 内容保留；2) 负结果参照——bootl-attacks 修复版乱序跳转会触发 mass erase（设计反而成为防线，cases/secure-boot/114-bootl-attacks-ches2021）；3) RDP1 语义对照——STM32G0 的 RDP1 只是屏蔽 flash 总线（不擦除），因此 TraceRip 类非毛格提取反而可行（kb143，cases/bootrom-firmware-dump/83）。设计建议：解锁流程与擦除原子化、擦除前置校验不可毛格跳过、擦除完成前禁止调试使能。",
+  "tags": [
+    "defense",
+    "flash-erase",
+    "design-flaw"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/talks/161-camp2023-flash-erase-suppression + cases/secure-boot/114-bootl-attacks-ches2021 + cases/bootrom-firmware-dump/83-tracerip-stm32g0",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "kb151",
+  "verified": false,
+  "title": "Qualcomm IPQ 家族（IPQ40xx/IPQ5018）：QSEE/EL3 特权提升",
+  "description": "EMFI 打 TEE 与 secure monitor 的两代实战",
+  "detail": "1) IPQ40xx QSEE——EM 探针贴 die 表面（拆散热片即可）；add-sled 表征 20000 次全表面→热点固定；利用窗=GPIO 围住 tzbsp_fver_get_version 的 SMC 调用段≈5.875µs；毛格跳过 SMC handler 的 is_ree_range 校验→对任意地址 NULL 写→二次无毛格调用+回读 secure 地址双重验证；300000 次/12h，功率 10–100% 随机（cases/emfi/240-raelize-ipq40xx-qsee-emfi）；2) IPQ5018 root→EL3——前置：CVE-2024-22013 拿 root+LKM 加载权；Part1 表征'同 die 上 U-Boot 层验证过的敏感位置可直接用于 QSEE/EL3 软件，探针无需移动'；Part2 EL3 任意读写、Part3 任意代码执行；硬件层缺陷不可打补丁（cases/emfi/243-raelize-gwifipro-el3-blog-series + cases/talks/163-hardwareio-usa2025-googlewifipro-el3）；表征方法学复用 kb123/kb124。",
+  "tags": [
+    "chip-family",
+    "qualcomm",
+    "tee"
+  ],
+  "applicability": [
+    "qualcomm-ipq40xx",
+    "qualcomm-ipq5018"
+  ],
+  "source": "cases/emfi/240-raelize-ipq40xx-qsee-emfi + cases/emfi/243-raelize-gwifipro-el3-blog-series + cases/talks/163-hardwareio-usa2025-googlewifipro-el3",
+  "created_at": "2026-11-15T00:00:00Z"
+}

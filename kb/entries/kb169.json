@@ -1,0 +1,17 @@
+{
+  "id": "kb169",
+  "verified": false,
+  "title": "防御：软件侧对策清单（不换硬件的前提下）",
+  "description": "Nullcon/BlackHat/厂商通告的对策面汇总",
+  "detail": "不换硬件可做的（Nullcon Goa 2025 防御演讲主题，Cortex-M4：电压/时钟/EM 毛格概览+软件对策，cases/talks/132-nullcon2025-glitch-sw-countermeasures）：1) 双重校验与随机延时（kb161/162）；2) 检查点密集插入（WooKey 修复版把 RDP_CHECK 插到每两个状态间，kb161）；3) 输出验证（kb166）；4) 尝试计数与锁定（kb165）。系统级（BH EU 15 slides 防御清单方法论：读手册定阈值→找信号→评估可达面，cases/talks/22-bh-eu15-electrical-glitching；威胁建模入口=treat FI as vulnerability class，Raelize FIRM：'某硬件子系统对特定 FI 技术的易感性且对安全有影响'，cases/other/246-raelize-firm-reference-model）。厂商建议（AR2023-007）：防物理访问/篡改检测、避免批间共用密钥、同时启用 Flash Encryption+Secure Boot、优选 flash 引脚内走的 SiP 封装（cases/secure-boot/82-espressif-ar2023-007）。定制 MCU 面向：定制 BGA 引脚布局、电压/时钟监控器、封焊熔丝位、外设内存加扰（cases/voltage-glitch/97）。",
+  "tags": [
+    "defense",
+    "countermeasure",
+    "checklist"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/talks/132-nullcon2025-glitch-sw-countermeasures + cases/talks/22-bh-eu15-electrical-glitching + cases/other/246-raelize-firm-reference-model + cases/secure-boot/82-espressif-ar2023-007 + cases/voltage-glitch/97-mercedes-immobilizer-overvoltage",
+  "created_at": "2026-11-15T00:00:00Z"
+}

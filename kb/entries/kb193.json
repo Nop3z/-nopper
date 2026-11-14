@@ -1,0 +1,18 @@
+{
+  "id": "kb193",
+  "verified": false,
+  "title": "负知识：CC2541 读保护未绕过（副作用实录）",
+  "description": "唯一在库'认真尝试但失败'的完整记录",
+  "detail": "事实：Rudman 论文的 CC2541 对照实验最终未绕过读保护——出现'调试状态损坏（corrupted debug status）'与'flash 被擦除'两类副作用，论文如实记录为失败与风险（cases/voltage-glitch/41-nrf52-crowbar）。方法侧（虽失败但信息量足）：blink 测试程序先找最小毛格宽度（50ns 起效、90ns 即复位→有效区间 50–80ns）；DCOUPL 引脚接 T1 并拆去耦电容（示波器对比拆前后特征差异显著）；RESET_N 下降沿触发（cc-tool 通信过程本身即窗口）；1M offset 范围×500ns 步进扫描。教训：1) CCxxxx 读保护实现与 nRF52 不同，不能直接迁移 nRF52 参数（kb145）；2) 毛格可能在目标侧造成不可逆副作用（debug 状态损坏、flash 被擦除）——用不可替代的板子要三思；3) 推广声明需验证：CC2510 作者称方法可推广至 CC253x/CC254x，未在仓库内直接验证（cases/voltage-glitch/42-cc253x-crowbar）。",
+  "tags": [
+    "negative-knowledge",
+    "cc2541",
+    "risk"
+  ],
+  "applicability": [
+    "cc2541",
+    "cc253x"
+  ],
+  "source": "cases/voltage-glitch/41-nrf52-crowbar + cases/voltage-glitch/42-cc253x-crowbar",
+  "created_at": "2026-11-15T00:00:00Z"
+}

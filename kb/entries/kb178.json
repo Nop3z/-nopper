@@ -1,0 +1,16 @@
+{
+  "id": "kb178",
+  "verified": false,
+  "title": "ChipWhisperer-Husky 专属能力（LA 自校验 / edge_counter / VCO）",
+  "description": "注入侧证据链与降抖动机制",
+  "detail": "1) 内置逻辑分析仪自校验——40x 过采样@10MHz 目标时钟=400 MS/s，采 FPGA 内部数字信号；对 width/offset 网格做交互式波形验证，即'先自校验注入器再打目标'；MMCM 默认关闭（功耗大，用完要关防过热；FPGA 过热闪红灯记录错误）（cases/tooling/139-cw-husky-glitch-tutorials）；2) 缺毛格压测——test_missing_glitch_sweep_offset 全相位步进找'漏发毛刺'的相位区间，区分注入器自身问题与靶问题（cases/tooling/174-cw-jupyter-glitch-leftovers）；3) edge_counter 降抖动——AI-FI 案例把时序关键工作交给 Husky FPGA edge_counter 触发模块（比 Python 循环抖动小得多）（cases/tooling/245-raelize-ai-fi-claude-code-esp32）；4) UARTTrigger/Trigger Sequencer——报文内容触发（all-or-nothing）与 demos/husky/02/04 教程（cases/tooling/144）；5) 固定硬件 latency（kb121/kb173）。EMFI 联动：Husky SMB → ChipShouter 触发（kb184）。",
+  "tags": [
+    "tooling",
+    "chipwhisperer-husky"
+  ],
+  "applicability": [
+    "chipwhisperer-husky"
+  ],
+  "source": "cases/tooling/139-cw-husky-glitch-tutorials + cases/tooling/174-cw-jupyter-glitch-leftovers + cases/tooling/245-raelize-ai-fi-claude-code-esp32 + cases/tooling/144-cw-tips-tricks-glitching",
+  "created_at": "2026-11-15T00:00:00Z"
+}

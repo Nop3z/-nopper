@@ -1,0 +1,21 @@
+{
+  "id": "kb115",
+  "verified": false,
+  "title": "响应三组/四色分类与成功率排序收敛",
+  "description": "把每发结果分类入库，按成功率热区收敛",
+  "detail": "标准分类：ChipWhisperer GlitchController 三组 success/reset/normal（超时与触发未落归 reset，用 adc.state 快速归类），gc.calc(sort='success_rate') 出命中表（cases/clock-glitch/01、cases/tooling/143）；TAoFI 四色 classify(expected, response)：G=与预期完全一致、R=含 Falling（复位）、M=含 Fatal exception（崩溃）、Y=其余未知（cases/voltage-glitch/07-raelize-taofi）。⚠ 色语义不统一：findus 内置 classify 把 R=Success、G=Trigger OK、Y=Timeout、M=Sync error、C=其他（cases/voltage-glitch/111、112）——迁移数据时必须先对齐色表；Raelize EMFI 表征用 expected/reset/success/exception 四类 + 计数值回读（cases/emfi/241）。实践：每次实验写库（clock, delay, length, color, response），Web 可视化 delay×length 着色散点，成功区一目了然；分类脚本要和判定通道（kb122）一致，'计数值≠预期'即 success。",
+  "tags": [
+    "fault-injection",
+    "classification",
+    "methodology"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/clock-glitch/01-fault101-clock-glitch + cases/voltage-glitch/07-raelize-taofi + cases/voltage-glitch/111-findus-pico-glitcher-lib + cases/voltage-glitch/112-syss-lpc1343-crp + cases/emfi/241-raelize-esp32-emfi-sb-series",
+  "commands": [
+    "gc.calc(ignore_params, sort='success_rate')  # ChipWhisperer GlitchController",
+    "python -m hwctl scan-report --csv .sapper/scan/c01.csv --group-by outcome --sort success_rate"
+  ],
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,20 @@
+{
+  "id": "kb108",
+  "verified": false,
+  "title": "UART 通信触发与沿计数定窗法",
+  "description": "用串口字节串/字节边沿做时间锚，量出边沿到敏感代码的间隔",
+  "detail": "三类用法：1) 字节串触发——Husky UARTTrigger 按报文内容匹配（baud/数据位/stop/parity + set_pattern_match；官方强调 all-or-nothing，失败不解释原因，须外接示波器对照线上信号，cases/tooling/144-cw-tips-tricks-glitching）；2) 通信沿计数——STM32F103 ISP：0x11+0xEE 两字节在 RX 线产生 6 个上升沿，示波器逐位解码 UART 波形后推得'第 6 上升沿后 14.44µs'为 RDP 检查窗（cases/voltage-glitch/191-stm32f103-rdp1-csdn-powershorter，115200 8E1）；Bus Pirate 5：发回车到目标应答之间 ≈29µs，逻辑分析仪多次测量一致（cases/tooling/253-greybeard-buspirate5-glitch）；BH EU 15 LPC1343：先发 17 个 'A' 用串口响应时序定窗（cases/talks/22-bh-eu15-electrical-glitching）；3) SimpleSerial 帧 + 固件内 trigger GPIO 组合（fault101/fault201 'p'/'k'/'t' 帧，cases/clock-glitch/01）。通用流程：LA/示波器量边沿间隔→换算 ns→设触发器等沿+延时注入。",
+  "tags": [
+    "fault-injection",
+    "triggering",
+    "uart"
+  ],
+  "applicability": [
+    "stm32",
+    "atmega328p",
+    "lpc",
+    "通用 UART 靶"
+  ],
+  "source": "cases/tooling/144-cw-tips-tricks-glitching + cases/voltage-glitch/191-stm32f103-rdp1-csdn-powershorter + cases/tooling/253-greybeard-buspirate5-glitch + cases/talks/22-bh-eu15-electrical-glitching + cases/clock-glitch/01-fault101-clock-glitch",
+  "created_at": "2026-11-15T00:00:00Z"
+}

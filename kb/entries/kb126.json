@@ -1,0 +1,20 @@
+{
+  "id": "kb126",
+  "verified": false,
+  "title": "供电走线改造工艺（割线、磁线、测试点焊接）",
+  "description": "为了可控毛刺而对 PCB 做的最小侵入改造清单",
+  "detail": "常见改造与要点：1) 割线引脚浮空——RP2350 USB_OTP_VDD：手术刀割断供电走线使引脚与电源断开，经电流表施加 3.3V，PCBite 探针接触，焊回芯片后连续性检查（cases/voltage-glitch/197-rp2350-otp-glitch-kesenheimer）；2) 割线+磁线——ESP32 VDD_RTC：割断走线以磁线（magnet wire）焊到引脚，VDD_CPU 直连毛刺器，VDD_RTC 串 1Ω 电阻接示波器做 SPA 监测（cases/voltage-glitch/196-limitedresults-esp32-fullsecure）；3) 测试点细焊——AirTag：超细线焊测试点（≤270°C）、焊桥两路正电、1.8V→3.3V 电平转换器（cases/voltage-glitch/286-airtag-glitch-dump）；4) 拆指定去耦电容——Starlink modchip 焊接前移除核心电源指定电容并叠焊 castellated holes（cases/voltage-glitch/40-starlink-fi）；5) 改板隔离——LPC1114 教程：断开 3.3V_CORE/3.3V_IO_E 走线、串 12Ω 隔离电阻、VCC 接 SMA（cases/voltage-glitch/04-faultapp1-lpc1114-crp）。通用纪律：每处改造在案例 README 的接线段记录并拍照，毛刺后失效先查改造点。",
+  "tags": [
+    "fault-injection",
+    "hardware",
+    "rework"
+  ],
+  "applicability": [
+    "esp32",
+    "rp2350",
+    "nrf52",
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/197-rp2350-otp-glitch-kesenheimer + cases/voltage-glitch/196-limitedresults-esp32-fullsecure + cases/voltage-glitch/286-airtag-glitch-dump + cases/voltage-glitch/40-starlink-fi + cases/voltage-glitch/04-faultapp1-lpc1114-crp",
+  "created_at": "2026-11-15T00:00:00Z"
+}

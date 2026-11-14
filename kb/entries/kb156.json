@@ -1,0 +1,18 @@
+{
+  "id": "kb156",
+  "verified": false,
+  "title": "Xilinx Zynq-7000：Secure Boot RSA 认证绕过（细节在论文）",
+  "description": "artifact 极简型家族条目，攻击细节需读 WOOT'24 原文",
+  "detail": "目标：Zynq-7000 SoC 的 Secure Boot RSA 位流认证。结果（论文级）：FI 打 BootROM 的 RSA 验证环节，绕过认证并恢复加密位流内容（WOOT'24 'Achilles Heel in Secure Boot: Breaking RSA Authentication and Bitstream Recovery from Zynq-7000 SoC'，Prasanna Ravi/Arpan Jati/Shivam Bhasin）。⚠ 状态：官方 artifact 仓库只有 README（无实现文件、无扫参脚本），四问主体（注入通道/窗口/触发/判定）需读 usenix.org 论文 PDF 后回填——当前只有结果级结论（cases/secure-boot/207-zynq7000-rsa-bypass）。复现路径：1) 从 usenix.org/conference/woot24/presentation/ravi 下载 PDF；2) 阅读实现细节后补齐本条目四问；在此之前不得为 Zynq 编造参数。",
+  "tags": [
+    "chip-family",
+    "zynq7000",
+    "secure-boot",
+    "negative-knowledge"
+  ],
+  "applicability": [
+    "zynq7000"
+  ],
+  "source": "cases/secure-boot/207-zynq7000-rsa-bypass",
+  "created_at": "2026-11-15T00:00:00Z"
+}

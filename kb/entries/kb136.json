@@ -1,0 +1,22 @@
+{
+  "id": "kb136",
+  "verified": false,
+  "title": "DFA 轮次分类判定法（AES 故障密文的轮位标定）",
+  "description": "错误密文先分类轮次，再喂 DFA 恢复密钥",
+  "detail": "流程：1) 收集 golden 密文基线 + 故障密文；2) 轮次分类——用已知密钥（实验室场景）对每个错误密文手算各轮，定位故障落在 EARLIER/R9_INPUT/LATE 哪一段；DFA 方程（Piret/Quisquater）需要'干净的第 9 轮输入故障'（cases/voltage-glitch/250-newae-forum-hwaes-voltage-dfa）；3) 数学求解——fault201：单列（25%）错误密文喂 phoenixAES 恢复第 10 轮密钥，再逆密钥编排得 AES-128 主密钥（2~3 条错误密文即可）；R9 打在'第 8 轮 MixColumns 输出之后、第 9 轮 MixColumns 之前'，R8 提前一轮并做 1→4 轮换（cases/clock-glitch/03-fault201-aes-rsa-dfa）；4) 离线工具——dfa-aes 参考实现：加密侧 round 8/9、解密侧 round 1/2，round 8（或解密 round 2）单故障数秒恢复（AES-NI 加速），未知故障位置的 bitflip 也可候选枚举；成功判据=恢复密钥加密已知明文与目标密文一致（cases/other/289-dfa-aes）；5) 自动化——GRIT M29 教程单字节故障 round 9 + 若干对→全密钥恢复（cases/other/176-grit-avr-fi-testbed）；ecdsattack 自动判定故障签名可利用性（ECDSA，cases/dfa/210-ecdsa-faulted-signatures）。",
+  "tags": [
+    "dfa",
+    "aes",
+    "methodology"
+  ],
+  "applicability": [
+    "通用",
+    "aes 加速器/软件实现"
+  ],
+  "source": "cases/voltage-glitch/250-newae-forum-hwaes-voltage-dfa + cases/clock-glitch/03-fault201-aes-rsa-dfa + cases/other/289-dfa-aes + cases/other/176-grit-avr-fi-testbed + cases/dfa/210-ecdsa-faulted-signatures",
+  "commands": [
+    "pip install phoenixAES",
+    "python -c \"import phoenixAES; phoenixAES.crack_file('faulted.txt', 'golden.txt')\""
+  ],
+  "created_at": "2026-11-15T00:00:00Z"
+}

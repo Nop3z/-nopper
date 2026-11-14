@@ -1,0 +1,17 @@
+{
+  "id": "kb162",
+  "verified": false,
+  "title": "防御：随机延时对抗（随机化敏感检查时刻）",
+  "description": "随机延时会击穿固定 offset 扫法",
+  "detail": "设计：在内存读取/敏感检查前加入随机延时，使攻击者的固定偏移扫法失效。案例证据：1) STM32F411——回帖人称'随机延迟在内存读取前加入'，固定偏移扫法失效；需统计式窗口搜索（先统计随机延时分布再决定扫参策略，帖内未展开）（cases/voltage-glitch/251-newae-forum-stm32f411-rdp1-fi）；2) 攻击侧的应对模式（理解防御面）：随机区间扫描（kb132）、统计式窗口估计、加法雪橇表征（kb123）；3) 靶场对照——GRIT 的 M19-M22 高级 VFI 模块实现 LFSR jitter 对策，可练习'带随机化目标'的攻击（cases/other/176-grit-avr-fi-testbed）；4) Raelize 的时序随机化在攻击侧同样使用（功率 10–100% 随机），说明随机化同时是攻防两用工具（cases/emfi/240）。设计要点：随机源要与毛格不可相关（避免低熵 RND 被侧信道读取）；随机范围应覆盖毛格可达窗的整数倍。",
+  "tags": [
+    "defense",
+    "countermeasure",
+    "randomization"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/251-newae-forum-stm32f411-rdp1-fi + cases/other/176-grit-avr-fi-testbed + cases/emfi/240-raelize-ipq40xx-qsee-emfi",
+  "created_at": "2026-11-15T00:00:00Z"
+}

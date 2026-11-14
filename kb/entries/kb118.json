@@ -1,0 +1,25 @@
+{
+  "id": "kb118",
+  "verified": false,
+  "title": "免拆电容的电流汲取注入（glitchsink 工艺）",
+  "description": "用寄生电容+可变电阻抽取目标电荷，不动 PCB 打跳过",
+  "detail": "原理：不短接到地，而是把毛刺侧接成'大寄生电容+可变电阻'端，从目标旁路电容与 MCU 内部电荷中抽走足够电荷使指令跳过——免拆去耦电容、无 PCB 改动（cases/tooling/202-glitchsink-samyk）。实现：Teensy 3.2（72MHz，ARM 汇编精确时序段）+ MAX4619 模拟开关，Y1 挂 470µF 电解电容（或数字电位器做可变电阻），双电源其中一路设 0.0V 作毛刺电平。实测命中点（3.0V/0.0V/470µF）：311µs、2759µs、4878µs；2.9/3.0V + 1Ω+470µF 时 1468–3638µs 多点命中（README/.ino 内嵌日志）。串口协议：s#=start_delay_us、w#=wait_for_glitch_us、p#=power_off_us、n#=NOP 数；g=毛刺一次、r=复位+毛刺；成功打印 'Woot! Success: Glitching with <delay>us'。适用：目标是 boot 保护检查且不能/不便动板时；精度低于 crowbar，命中窗口较宽。",
+  "tags": [
+    "fault-injection",
+    "voltage-glitch",
+    "technique"
+  ],
+  "applicability": [
+    "lpc",
+    "atmega328p",
+    "通用 MCU"
+  ],
+  "source": "cases/tooling/202-glitchsink-samyk",
+  "commands": [
+    "minicom -D /dev/ttyACM0   # Teensy 串口",
+    "s16500    # start_delay_us",
+    "n60       # NOP 数",
+    "r         # 复位+毛刺，成功输出 Woot! Success"
+  ],
+  "created_at": "2026-11-15T00:00:00Z"
+}

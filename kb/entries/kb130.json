@@ -1,0 +1,17 @@
+{
+  "id": "kb130",
+  "verified": false,
+  "title": "开扫前波形验收与毛刺可视化",
+  "description": "示波器看不到毛刺形状就不要开始扫描",
+  "detail": "验收流程：1) 示波器探针贴目标 VDD 引脚（非电源端），以触发沿同步，确认毛刺为干净矩形凹陷：下降沿<10ns、底部低于标称 0.5–1.5V、无振铃（cases/voltage-glitch/80-0xrafasec-f1-crowbar）；2) Pico Glitcher 在 GLITCH 输出与 VTARGET 间串 10Ω 采样电阻供示波器验证（cases/voltage-glitch/111-findus-pico-glitcher-lib）；3) ChipWhisperer 生态：电压毛刺非确定、未必命中，从功耗轨迹 diff 推断毛刺效果（repeat=2 双周期毛刺肉眼可见）；空载示波器直连 glitch 口看不到东西（需接真靶）；想看毛刺本身——外接示波器（官方截图：单管 vs 双管波形差异巨大）、scope.LA、bitbanger；ADC 削顶检查 scope.adc.errors；'毛刺长什么样不重要，重要的是它对目标的效果'（cases/tooling/144-cw-tips-tricks-glitching）；4) Husky 注入侧自校验：内置逻辑分析仪 40x 过采样捕获毛刺波形+markers，交互式 width/offset 网格验证（cases/tooling/139-cw-husky-glitch-tutorials）；5) Faultier ADC 录波定锚：先录 crowbar 波形（configure_adc→glitch→read_adc 画曲线）测得 delay≈2500 再随机扫（cases/emfi/115-hextree-faultier-glitchtag）。",
+  "tags": [
+    "fault-injection",
+    "verification",
+    "instrumentation"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/80-0xrafasec-f1-crowbar + cases/voltage-glitch/111-findus-pico-glitcher-lib + cases/tooling/144-cw-tips-tricks-glitching + cases/tooling/139-cw-husky-glitch-tutorials + cases/emfi/115-hextree-faultier-glitchtag",
+  "created_at": "2026-11-15T00:00:00Z"
+}

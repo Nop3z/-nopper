@@ -1,0 +1,19 @@
+{
+  "id": "kb135",
+  "verified": false,
+  "title": "双电源域协同毛刺（CPU 域 + RTC 域等）",
+  "description": "有些缺陷只对多域同时塌陷起反应",
+  "detail": "1) ESP32 必须双域——LimitedResults：单打 VDD_CPU 对 BootROM 阶段影响甚微（实测无效后改为双轨），最终用 VDD_CPU+VDD_RTC 同时毛刺绕过 Secure Boot 并打掉 eFuse 读保护（cases/voltage-glitch/196-limitedresults-esp32-fullsecure）；Raelize crowbar 同样打 VDD3P3_CPU 与 VDD3P3_RTC 两个电源域，且实验台电源把该域电压降到 3.3V 以下更易成功（cases/secure-boot/27-raelize-taofi-crowbar-writeup）；2) 域分离要点——MC9S12 把核心电源 VCORE 与 PLL/时钟电源 VCLK 分离（VCLK 2.0V 独立供电不参与毛刺），避免毛刺误伤时钟（cases/voltage-glitch/283-mc9s12-bdm-glitch）；3) 内核域定位——查数据手册确定内核供电域再动手：MAX78000 的 VCOREA（kb127）、STM32F439 的 Vcap（稳压器之后的内核电源，PMOS 并联在 Vcap 电容上，tRISE+tFALL<20ns，cases/voltage-glitch/81-stm32-rdp-academic-papers 论文C）。工艺配套见 kb126（割线/磁线）。",
+  "tags": [
+    "fault-injection",
+    "voltage-glitch",
+    "esp32"
+  ],
+  "applicability": [
+    "esp32",
+    "stm32",
+    "mc9s12"
+  ],
+  "source": "cases/voltage-glitch/196-limitedresults-esp32-fullsecure + cases/secure-boot/27-raelize-taofi-crowbar-writeup + cases/voltage-glitch/283-mc9s12-bdm-glitch + cases/voltage-glitch/81-stm32-rdp-academic-papers",
+  "created_at": "2026-11-15T00:00:00Z"
+}

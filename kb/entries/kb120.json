@@ -1,0 +1,17 @@
+{
+  "id": "kb120",
+  "verified": false,
+  "title": "repeat/多射参数语义与 in-cycle 多射",
+  "description": "repeat 是'连续 N 发'还是'N 周期宽度'——先核文档再扫",
+  "detail": "repeat 语义存在工具间分歧，用前必须核实：NewAE 论坛 DFA 帖实测 repeat=1 全部 Normal（无效果）、repeat=8–14 才出现效果但 nonsensical，回帖人 spike 指出 repeat 可能='连续 N 次 crowbar 毛刺'而非'N 周期毛刺宽度'，倾向证实；建议用 Husky 前先核 GLITCH_SETTINGS 文档（cases/voltage-glitch/250-newae-forum-hwaes-voltage-dfa）。官方 SOLN 参数里 repeat 作'毛刺持续多周期'用：CWLITEARM repeat=7、CWLITEXMEGA repeat=11、CW308_STM32F3 repeat=5（cases/voltage-glitch/02-fault101-voltage-glitch）。Husky 支持任意波形串：num_glitches=5 + repeat/offset 数组（cases/tooling/144-cw-tips-tricks-glitching）。TAoFI 的 length→repeat 换算见 kb121。in-cycle 多射用途：单发太窄打不中时用多射覆盖整段窗口，但会把 crash 率一并推高（教学经验 width 太长 hard fault，cases/talks/84-sigpwny-fi-lab）。",
+  "tags": [
+    "fault-injection",
+    "parameters",
+    "chipwhisperer"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/250-newae-forum-hwaes-voltage-dfa + cases/voltage-glitch/02-fault101-voltage-glitch + cases/tooling/144-cw-tips-tricks-glitching + cases/talks/84-sigpwny-fi-lab",
+  "created_at": "2026-11-15T00:00:00Z"
+}

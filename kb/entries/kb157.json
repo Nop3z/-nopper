@@ -1,0 +1,18 @@
+{
+  "id": "kb157",
+  "verified": false,
+  "title": "MC9S12/HCS12：复位安全评估窗口与 BDM 解锁",
+  "description": "汽车 MCU flash 安全位的 150 时钟窗口毛格",
+  "detail": "机制：MC9S12 在复位后前 150 个总线时钟（2MHz 总线≈75µs）内评估 flash 安全位。注入点：核心电源 VCORE（与 PLL/时钟电源 VCLK 分离，kb135），74HC4053 模拟开关在'正常电压'与'电流汲地'间切换；Teensy 4.1 控 MUX 并定时；RESET 边沿触发（USBDM 适配器控 RESET、Teensy 监视沿）。流程：先 BKGD 特征化快扫（~5 分钟）找该芯片个体的电压/脉宽甜点，再 RESET-mode 在甜点邻域对 75µs 窗定点扫。判定：USBDM Connect() 返回 unsecured（可全片读 flash）；rc=33（RESET pin timeout）=失败/时钟不稳信号，用 PSU off/on 恢复。教训：晶振频率必须匹配（错晶振=命中分散成功率极低，kb134）、晶振加稳压电容、PSU 限流 10mA。（cases/voltage-glitch/283-mc9s12-bdm-glitch）",
+  "tags": [
+    "chip-family",
+    "mc9s12",
+    "automotive"
+  ],
+  "applicability": [
+    "mc9s12",
+    "hcs12"
+  ],
+  "source": "cases/voltage-glitch/283-mc9s12-bdm-glitch",
+  "created_at": "2026-11-15T00:00:00Z"
+}

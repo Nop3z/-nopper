@@ -1,0 +1,18 @@
+{
+  "id": "kb182",
+  "verified": false,
+  "title": "GlitchController 扫参工作流（官方标准流程）",
+  "description": "三组分类、success_rate 排序与 glitch_plot",
+  "detail": "流程（fault101/fault201 官方教程，cases/clock-glitch/01 + cases/tooling/143-cw-fault101-intro-bootloader）：1) 定义参数组（width/offset/ext_offset/repeat 区间+步进）；2) 循环：arm→注入→读响应→simpleserial_read_witherrors 区分 valid/invalid/error_code→按 success/reset/normal 三组分类；3) glitch_plot / gc.plot() 出参数平面分类图；4) gc.calc(ignore_params, sort='success_rate') 出命中表，按成功率排序收敛到热区再细扫；5) 每点 tries 多次尝试（kb116）。配合参数：每轮 reboot_flush 复位、capture 后 vglitch_reset（kb131）；Husky 参考参数（kb141）。对照实现：TAoFI sqlite+Analyzer（kb180）、findus Database（kb181）、Flipper 热图 CSV（kb188）——机制同构，nopper 的 scan_campaign/CSV 台账设计（plan/domain-map.md §5）与之同型。",
+  "tags": [
+    "tooling",
+    "chipwhisperer",
+    "workflow"
+  ],
+  "applicability": [
+    "chipwhisperer",
+    "通用"
+  ],
+  "source": "cases/clock-glitch/01-fault101-clock-glitch + cases/tooling/143-cw-fault101-intro-bootloader + cases/clock-glitch/03-fault201-aes-rsa-dfa",
+  "created_at": "2026-11-15T00:00:00Z"
+}

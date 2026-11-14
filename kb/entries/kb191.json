@@ -1,0 +1,18 @@
+{
+  "id": "kb191",
+  "verified": false,
+  "title": "EMFI 探头与 XYZ 台选型",
+  "description": "探头几何、步距档位与温控保护",
+  "detail": "探头几何（Arrow 开源设计，cases/emfi/285-arrow-emfi-probes）：0402 电感=窄场（选择性高）、0805=宽场（覆盖广）；磁芯自绕线圈方向 CW/CCW 可选；集成反电动势保护+1/20 分压脉冲监测口（示波器整形确认）；四快装孔对接 XYZ 台。台架（ChipShover，cases/emfi/214-chipshover-xyz）：中精度 156.25nm 步距档/约 3µm 误差，低成本 781.25nm/50–100µm；Marlin 固件+Python 接口；50×50mm 标准接位挂注入器。台架保护（EM-Fault It Yourself，cases/emfi/45）：MLX90640 热像仪监控靶面温度（max_target_temp 上限）+风扇冷却；2× USB 显微镜标定。开源发生器：SiliconToaster 0–1000V/1J、双线圈插座切换极性、calibrate.py 电压-能量校准（cases/emfi/211-silicon-toaster-emfi）；Cypherock 板功率电感 744710610+SMA 自制探头（cases/emfi/98）。探头选择与 kb105 纪律配合。",
+  "tags": [
+    "tooling",
+    "emfi",
+    "bench"
+  ],
+  "applicability": [
+    "emfi",
+    "通用"
+  ],
+  "source": "cases/emfi/285-arrow-emfi-probes + cases/emfi/214-chipshover-xyz + cases/emfi/45-emfi-diy-bench + cases/emfi/211-silicon-toaster-emfi + cases/emfi/98-cypherock-emfi-board",
+  "created_at": "2026-11-15T00:00:00Z"
+}

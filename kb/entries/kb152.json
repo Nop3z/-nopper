@@ -1,0 +1,17 @@
+{
+  "id": "kb152",
+  "verified": false,
+  "title": "MediaTek 家族：MT8696 内核能力检查 EMFI（setresuid 跳过）",
+  "description": "adb→root 的无触发异步 EMFI 实战画像",
+  "detail": "目标：MediaTek MT8696（4×Cortex-A55@1.8GHz，Google TV Streamer 4K，Android 14）。攻击：EM 探针贴 SoC 表面（Keysight Spider DS1180A+XYZ 台），毛格跳过内核 setresuid 系统调用的 capability 检查→fall through 到 commit_creds()→uid=0（telnetd-static；SELinux 仍 enforced，非完整 root）。方法：无触发异步（kb125）——表征/攻击代码跑成芯片死循环，Phase1 全表面粗扫 5100 次/40min（7 命中 0.13%）、Phase2 敏感区细扫 7196 次（25 命中 0.3%），共 12500 次后探针固定到窄'有效带'；判定=毛格后 adb 检查 uid==0；毛格模型=ARM64 操作数腐坏（add #1→#0）与操作码腐坏（add→adrp）两类。局限：SELinux enforced；与 2017 年 Linux 电压毛格提权形成系列对照。（cases/emfi/244-raelize-gtv-streamer-setresuid-emfi）另：Fox-IT 的 MediaTek BootROM 毛格议题 WAF 403 未获内容（cases/voltage-glitch/67-foxit-mediatek-bootrom，见 kb199 待人工清单）。",
+  "tags": [
+    "chip-family",
+    "mediatek",
+    "kernel"
+  ],
+  "applicability": [
+    "mediatek"
+  ],
+  "source": "cases/emfi/244-raelize-gtv-streamer-setresuid-emfi + cases/voltage-glitch/67-foxit-mediatek-bootrom",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "kb128",
+  "verified": false,
+  "title": "实验记录与失败分类纪律（轮次分类法 / glitch-loop / 台账三态）",
+  "description": "把盲扫变成有方向的窗口收缩的证据链",
+  "detail": "方法：1) 轮次分类法——硬件 AES DFA 实战中用已知密钥对每个错误密文手算各轮，分类 EARLIER/R9_INPUT/LATE，把'盲扫'变成'有方向的窗口收缩'（cases/voltage-glitch/250-newae-forum-hwaes-voltage-dfa）；2) 统计选点——SSTIC 2020 对启动窗内多点打毛刺、2 万次运行统计选成功率最高时刻（1.5%）后进入利用段（cases/voltage-glitch/81-stm32-rdp-academic-papers 论文C）；3) glitch-loop 实验纪律（GA100 PWMVID）：一次性下发有界候选→只读状态对账（不确定的物理下发永不重放）→双独立只读基线→出现目标表型即 hold 交独立复核，绝不从单一观测推断（cases/voltage-glitch/281-ga100-pwmvid）；4) 台账三态——observed（单点）→confirmed（≥10 次、成功率≥30%）→rejected（归因偶发/漂移/参数错记），与 sapper finding/dedupe/record-before-submit 机制对接（plan/domain-map.md §1.3/§5）；5) 标准化靶场——GRIT 29 模块把注入点/触发/判定全标准化，可系统性练窗口方法（cases/other/176-grit-avr-fi-testbed）。",
+  "tags": [
+    "fault-injection",
+    "experiment-design",
+    "methodology"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/250-newae-forum-hwaes-voltage-dfa + cases/voltage-glitch/81-stm32-rdp-academic-papers + cases/voltage-glitch/281-ga100-pwmvid + cases/other/176-grit-avr-fi-testbed",
+  "commands": [
+    "sapper finding 'RDP 检查窗 hit @ delay=1.74ms width=4.3us' --campaign c01 --param f013 --outcome success",
+    "sapper finding-export --campaign c01 --format markdown"
+  ],
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,19 @@
+{
+  "id": "kb153",
+  "verified": false,
+  "title": "ATmega/AVR 家族（RHme/GRIT/BP5）：时钟与 VCC 双路线",
+  "description": "AVR 8-bit 平台的已验证参数与窗口",
+  "detail": "1) RHme2 官方 FI 三连——fiesta：时钟毛格，Glitch Offset −49%~30% 步进 1、Ext Trigger Offset 50000/Repeat 10，判定输出 Lock→FLAG；fine_tuning：Picoscope 辅助定位 Trigger Offset≈15580、宽度 30%/offset 39%/Repeat 10；fiasco：VCC crowbar（拆板电容、外部 4.5V、HydraBus+MOSFET、glitch_length=100 周期），offset 序列自增扫（191000 起步进 100）（cases/ctf/26-rhme2-rhme3-fi-writeups + cases/rhme-ctf/86-rhme-2016-official）；2) RHme3 benzinegate——反汇编 50 NOP 定位（kb114）、ext_offset=140@64MHz；PORTB 自置触发+IO3/IO4 AND 组合；溢出串+LED 闪后注入（cases/ctf/26）；3) BP5/strcmp——UART 回车后 ≈29µs 窗，毛格太长触发 BOD 复位、太短无效；目标=brbc 条件分支（cases/tooling/253-greybeard-buspirate5-glitch）；4) brownout 阈值实测——ATmega328p 实测 200ns（手册称 2µs），可在约 8% 占空比下运行（cases/talks/22-bh-eu15-electrical-glitching）；5) GRIT 靶场——29 模块五族（VFI/时钟/EMFI/SCA/DFA）标准化窗口训练（cases/other/176-grit-avr-fi-testbed）。",
+  "tags": [
+    "chip-family",
+    "atmega328p",
+    "avr"
+  ],
+  "applicability": [
+    "atmega328p",
+    "atmega2560",
+    "atxmega"
+  ],
+  "source": "cases/ctf/26-rhme2-rhme3-fi-writeups + cases/rhme-ctf/86-rhme-2016-official + cases/tooling/253-greybeard-buspirate5-glitch + cases/talks/22-bh-eu15-electrical-glitching + cases/other/176-grit-avr-fi-testbed",
+  "created_at": "2026-11-15T00:00:00Z"
+}

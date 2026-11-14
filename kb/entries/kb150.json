@@ -1,0 +1,19 @@
+{
+  "id": "kb150",
+  "verified": false,
+  "title": "Cortex-A 启动链（Starlink/Tegra）：BL1 签名校验毛格",
+  "description": "ROM bootloader 签名验证的电压毛格绕过画像",
+  "detail": "1) Starlink UT（DEF CON 30 + COSIC）——modchip（RP2040+MOSFET）拉低 SoC 核心电压；需拆供电去耦电容+两路 MOSFET 控电容组（毛格期间必须断开，kb197）；触发=eMMC D0 边沿计数（kb109）；判定=BL2 打印 'LENNERT'；patched BL2 需重开 UART 且镜像 hash 仍须合法（毛格只绕签名比对，kb171）（cases/voltage-glitch/40-starlink-fi + cases/talks/21-defcon30-starlink-secure-boot）；精确 glitch 参数官方未公开（slides 有提示、参数随补丁固件而变）；2) Tegra X2——电压毛格把出厂被 fuses 禁用的隐藏测试 bootloader 重新启用→最高特权执行+提取启动阶段解密密钥；细节需读论文原文 arXiv 2108.06131（cases/voltage-glitch/62-tegrax2-secureboot）；3) Linux 内核——Riscure KERNELFAULT：供电轨毛格 user→kernel 提权（cases/talks/131-kernelfault-hardweario-2017）；4) 同代硬件共性：GHz 多核 SoC 的 EMFI 有效性随工作频率变化的实验设计（cases/talks/171-mch2022-multicore-soc-emfi）。",
+  "tags": [
+    "chip-family",
+    "cortex-a",
+    "secure-boot"
+  ],
+  "applicability": [
+    "starlink-soc",
+    "tegra",
+    "cortex-a53"
+  ],
+  "source": "cases/voltage-glitch/40-starlink-fi + cases/talks/21-defcon30-starlink-secure-boot + cases/voltage-glitch/62-tegrax2-secureboot + cases/talks/131-kernelfault-hardweario-2017 + cases/talks/171-mch2022-multicore-soc-emfi",
+  "created_at": "2026-11-15T00:00:00Z"
+}

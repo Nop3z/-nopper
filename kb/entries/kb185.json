@@ -1,0 +1,18 @@
+{
+  "id": "kb185",
+  "verified": false,
+  "title": "PicoEMP：低成本 EMFI 工具与三触发通道",
+  "description": "~250V 微秒级电磁脉冲的入门平台",
+  "detail": "能力（CC BY-SA 3.0，cases/emfi/44-picoemp）：1) 电气：~250V 未校准输出（可用驱动信号粗调脉冲能量，可靠性低于 ChipSHOUTER 的 150–500V 校准输出）；SMA 输出到自制探头（铁氧体磁芯+漆包线，hardware/injection_tips/ 多例几何）；2) 触发三通道：板载手动按键（ARM→HV 灯亮→对位→Pulse）/ 串口控制台命令（C 固件）/ 外部触发引脚沿（trigger.pio）；C 固件（CMake+pico-sdk）'最健壮'，MicroPython 仅手动；3) 安全：塑料护罩为强制安全件，缺护罩不得操作；4) 论文（eprint 2023/1195）：TDC 与外部 VCC 测量对比 BBI/电压毛格，复现实验需读原文；5) 同级对照：Cypherock emfi-board（STM32L4 可编程 PWM 造高压+IGBT 开关，三触发源、3 轴位移台网格扫描，附 7 款钱包 DUT 板）（cases/emfi/98-cypherock-emfi-board）；低成本演示线=打火机/闪光灯改造（cases/emfi/252 + cases/talks/69）。",
+  "tags": [
+    "tooling",
+    "emfi",
+    "picoemp"
+  ],
+  "applicability": [
+    "picoemp",
+    "通用"
+  ],
+  "source": "cases/emfi/44-picoemp + cases/emfi/98-cypherock-emfi-board + cases/talks/69-remoticon-2021-oflynn",
+  "created_at": "2026-11-15T00:00:00Z"
+}

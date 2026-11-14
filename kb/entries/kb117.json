@@ -1,0 +1,18 @@
+{
+  "id": "kb117",
+  "verified": false,
+  "title": "电压 crowbar 工艺参数（选管、串阻、波形验收）",
+  "description": "FET 选型、限流电阻与开扫前的波形验收标准",
+  "detail": "选管：NFET 要求 R_DS(on)<50mΩ、栅极翻转<5ns（BSS138/Si2302 起步，DMN3404 边沿更陡，cases/voltage-glitch/80）；快沟道 IRLML6246 实测可用（cases/voltage-glitch/42-cc253x-crowbar）。接线：漏极与 VDD 间串 10–33Ω 限流电阻；毛刺输出尽量靠近目标电源引脚（Bus Pirate 案例：板上 C2 不在芯片旁没法拆，改在 pin4 VCC/pin3 GND 直接焊短线接 SMA，热熔胶固定，cases/tooling/253-greybeard-buspirate5-glitch）；FET 源极要串小电阻否则毛刺'on'太久会烧 FET（该作者烧了两只，cases/tooling/253）。波形验收（开扫前必做，示波器探针贴目标 VDD 引脚而非电源端）：以 NRST 上升沿触发，确认毛刺为干净矩形凹陷——下降沿<10ns、底部低于标称 3.3V 约 0.5–1.5V、无振铃（cases/voltage-glitch/80）。ChipWhisperer 双管（LP+HP）与 vglitch_reset 见 kb176/kb174。",
+  "tags": [
+    "fault-injection",
+    "voltage-glitch",
+    "hardware"
+  ],
+  "applicability": [
+    "stm32",
+    "通用 MCU"
+  ],
+  "source": "cases/voltage-glitch/80-0xrafasec-f1-crowbar + cases/voltage-glitch/42-cc253x-crowbar + cases/tooling/253-greybeard-buspirate5-glitch",
+  "created_at": "2026-11-15T00:00:00Z"
+}

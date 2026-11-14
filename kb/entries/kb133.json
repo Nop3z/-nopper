@@ -1,0 +1,20 @@
+{
+  "id": "kb133",
+  "verified": false,
+  "title": "温度对毛刺窗口的影响",
+  "description": "降温是手段也是变量：SRAM 保持 vs 时钟偏移",
+  "detail": "双向影响：1) 降温保护 SRAM——STM32F4 断电毛刺要求 SRAM 数据保持，而 F4 的 SRAM 断电后室温下即损坏，需毛刺前给芯片降温（作者用倒扣气吹，甚至建议冷冻）；降温又让内部 RC 振荡器偏移、root shell 的 UART 输出乱码——需等芯片回温后再交互（cases/voltage-glitch/190-stm32f4-rdp-fpb）；2) 冷硅片参数不同——STM32F1 窗口随时钟配置/晶圆批次变化，温度影响窗口参数（cases/voltage-glitch/80-0xrafasec-f1-crowbar）；3) 临界区漂移——nRF52 的成功窗口数月内在不同 offset 间漂移，故扫描范围要放宽（offset 1027–1100µs，cases/voltage-glitch/41-nrf52-crowbar）；4) 校准纪律——bootl-attacks 明确毛刺电压/宽度受温度、晶圆批次、环境因素影响，先在训练芯片上校准（cases/secure-boot/114-bootl-attacks-ches2021）。实验设计启示：长时间扫描中途记录环境温度；跨日复现失败先查温度差。",
+  "tags": [
+    "fault-injection",
+    "environment",
+    "methodology"
+  ],
+  "applicability": [
+    "stm32f4",
+    "stm32f1",
+    "nrf52",
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/190-stm32f4-rdp-fpb + cases/voltage-glitch/80-0xrafasec-f1-crowbar + cases/voltage-glitch/41-nrf52-crowbar + cases/secure-boot/114-bootl-attacks-ches2021",
+  "created_at": "2026-11-15T00:00:00Z"
+}

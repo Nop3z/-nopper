@@ -1,0 +1,17 @@
+{
+  "id": "kb121",
+  "verified": false,
+  "title": "参数单位与换算表（ns ↔ ext_offset/repeat、各工具的时间基准）",
+  "description": "delay/length 换算公式与各注入器分辨率速查",
+  "detail": "换算公式（TAoFI FaultLib，cases/voltage-glitch/07）：delay//(1e9/clkgen_freq)=ext_offset、length→repeat，delay/length 以 ns 为单位。ChipWhisperer-Husky：glitch 步长=1 时钟周期，clkgen 50MHz 时最小步进 20ns，宽度=repeat×20ns、延迟=ext_offset×20ns；Husky 与 ChipShouter 均有固定硬件 latency（trigger_delay=0 也不即发）（cases/emfi/110-ot-sca-riscv-fi）；Husky MMCM VCO 600–1200MHz，VCO 越高 phase_shift_steps 越细（cases/tooling/139-cw-husky-glitch-tutorials）。CW-Nano（中断式毛刺、无 FPGA 同步）：glitch_time = 47.3 + scope.glitch.ext_offset/16（大 ext_offset ≳300、adc.clk_freq=7.5M 时成立，15M 约翻倍）（cases/tooling/144-cw-tips-tricks-glitching）。亚周期精度：CLKGEN 输入切 EXTCLK 并 ×10 倍频→毛刺起止时间可按目标周期分数调（cases/tooling/144）。其他基准：Faultier 单位=5ns 步进（cases/emfi/115）、raiden-pico @150MHz=6.67ns/周期（cases/voltage-glitch/116）、RP2040 PIO 5ns 分辨率/最小延迟 10ns（cases/voltage-glitch/113）、Flipper DWT≈15.6ns（cases/voltage-glitch/118）、glitchsink µs 级（cases/tooling/202）。扫描脚本必须显式声明时间基准，禁止混用单位。",
+  "tags": [
+    "fault-injection",
+    "parameters",
+    "units"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/07-raelize-taofi + cases/emfi/110-ot-sca-riscv-fi + cases/tooling/144-cw-tips-tricks-glitching + cases/tooling/139-cw-husky-glitch-tutorials + cases/emfi/115-hextree-faultier-glitchtag + cases/voltage-glitch/113-stm8-interactive-glitcher + cases/voltage-glitch/118-glitchtrigger-flipper",
+  "created_at": "2026-11-15T00:00:00Z"
+}

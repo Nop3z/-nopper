@@ -1,0 +1,19 @@
+{
+  "id": "kb176",
+  "verified": false,
+  "title": "glitch_hp vs glitch_lp 选管与内部稳压器处理",
+  "description": "双 MOSFET 特性差异与 LDO 目标的供电策略",
+  "detail": "选管（cw_tips_tricks，Apache-2.0 官方文档）：所有 CW 采集卡（除 Nano）有 LP/HP 两颗 crowbar MOSFET——glitch_lp 响应更快（可做更窄更锐的毛格），glitch_hp 适合耗电大的目标；可单用或同用（Nano 单管）；双管同用与单管的波形差异巨大（官方 glitch_hp.png/glitch_hplp.png 截图）；理论背景=Colin crowbar 论文 eprint 2016/810（cases/tooling/144-cw-tips-tricks-glitching）。内部稳压器目标（LDO 在片内，VCC 拉不下来）：a) 在电容上并 shunt 测量；b) 外接'略高'电压把内部稳压器压到关断——CW308 上 J14 跳线接 VADJ，先预置到核电压（如 1.2V）防止 magic smoke（cases/tooling/144 regulators 篇）；c) 改打稳压器之后的内核域（Vcap/VCOREA，kb135）。实例：STM32F439 Vcap PMOS（cases/voltage-glitch/81）、MAX78000 VCOREA 拆电容+buck（cases/talks/84）。",
+  "tags": [
+    "tooling",
+    "chipwhisperer",
+    "voltage-glitch"
+  ],
+  "applicability": [
+    "chipwhisperer",
+    "stm32f4",
+    "通用"
+  ],
+  "source": "cases/tooling/144-cw-tips-tricks-glitching + cases/voltage-glitch/81-stm32-rdp-academic-papers + cases/talks/84-sigpwny-fi-lab",
+  "created_at": "2026-11-15T00:00:00Z"
+}

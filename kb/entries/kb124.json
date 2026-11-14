@@ -1,0 +1,20 @@
+{
+  "id": "kb124",
+  "verified": false,
+  "title": "EMFI 空间表征网格流程（30×30 扫描 + 功率随机化 + 热点固定）",
+  "description": "EMFI 的空间维度扫描与三参数降维",
+  "detail": "EMFI 参数=position/power/timing 三维，分步降维：1) 空间粗扫——30×30 网格扫全 die 表面，每点功率 10–100% 随机化、时序随机化，用 add-sled 表征（kb123）分色作图：Raelize 实测 165000 次/8.5h（ESP32）、20000 次（IPQ40xx）、60000 次→9 次成功落 4 个位置（OTP transfer）；成功点集中即把探针固定到该位置，空间参数从搜索空间剔除（cases/emfi/240、241、242）；2) 时间收窄——IPQ40xx 用 GPIO 围住 SMC 调用段得 5.875µs 窗口（cases/emfi/240）；ESP32 OTP 用复位沿锚定≈969µs 窗（复位到 flash 首活动 1.25ms→UART 首条打印收窄）（cases/emfi/242-raelize-esp32-otp-transfer-emfi）；3) 时序顺序性——OTP block0 越靠前的位要在窗口越早处打（搬运是顺序的）（cases/emfi/242）；4) 功率细扫——固定位置后功率 start-10 起步进 1 细扫（cases/emfi/244 两段式：Phase1 全表面粗扫 5100 次/40min 命中 0.13%，Phase2 敏感区细扫 7196 次命中 0.3%）。台架与探头选型见 kb105/kb191。",
+  "tags": [
+    "fault-injection",
+    "emfi",
+    "characterization"
+  ],
+  "applicability": [
+    "esp32",
+    "qualcomm-ipq",
+    "mediatek",
+    "通用 IC"
+  ],
+  "source": "cases/emfi/240-raelize-ipq40xx-qsee-emfi + cases/emfi/241-raelize-esp32-emfi-sb-series + cases/emfi/242-raelize-esp32-otp-transfer-emfi + cases/emfi/244-raelize-gtv-streamer-setresuid-emfi",
+  "created_at": "2026-11-15T00:00:00Z"
+}

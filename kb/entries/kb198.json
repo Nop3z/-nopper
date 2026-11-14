@@ -1,0 +1,20 @@
+{
+  "id": "kb198",
+  "verified": false,
+  "title": "负知识：毛格成功不持久——同周期利用约束",
+  "description": "成功态通常随复位失效，利用必须与注入同周期",
+  "detail": "多处独立证据：1) STM32F1 RDP——0xrafasec 强调毛格成功不永久解除 RDP：option byte 仍是受保护值，复位即重新上锁，dump 必须与毛格同一上电周期完成（cases/voltage-glitch/80-0xrafasec-f1-crowbar）；2) ESP32 Secure Boot——绕过有效至下次复位（'Sec boot pwned' 状态非持久）；密钥类结果（FEK/SBK dump）持久但依赖统计恢复（cases/voltage-glitch/196-limitedresults-esp32-fullsecure）；3) F439 双故障链——每轮上电循环重做第一段降级（成功率 1.5% 的阶段反复执行）（cases/voltage-glitch/81-stm32-rdp-academic-papers）；4) nRF52——'本次上电周期内 SWD 临时恢复'（UICR.APPROTECT 保持不变、不执行 recover/eraseall）（cases/voltage-glitch/65）；5) 操作纪律：毛格命中后的动作链（连接→dump→校验）要预编排并在同周期内完成——验证员复现统计（confirmed）因此要重放整条链而非单发；成功瞬间的参数记录先于一切（'capture the flag immediately'，plan/domain-map.md §2.2）。",
+  "tags": [
+    "negative-knowledge",
+    "exploitation",
+    "timing"
+  ],
+  "applicability": [
+    "stm32f1",
+    "esp32",
+    "nrf52",
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/80-0xrafasec-f1-crowbar + cases/voltage-glitch/196-limitedresults-esp32-fullsecure + cases/voltage-glitch/81-stm32-rdp-academic-papers + cases/voltage-glitch/65-nrf52-cve-27211-linfeng",
+  "created_at": "2026-11-15T00:00:00Z"
+}

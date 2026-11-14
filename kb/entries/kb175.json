@@ -1,0 +1,17 @@
+{
+  "id": "kb175",
+  "verified": false,
+  "title": "ChipWhisperer 平台总览：scope.glitch 参数域与输出模式",
+  "description": "统一电压/时钟毛格的参数面与单位差异",
+  "detail": "要点：1) scope.glitch 统一控制电压与时钟毛格形状，输出走电压还是时钟由 scope.io 决定；输出模式 glitch_only/enable_only/clock_xor——enable_only 模式下 offset 也会影响输出（文档明示图示不精确处）（cases/tooling/139 + 144）；2) 单位差异：CW-Lite 以 clkgen 周期百分比计（width 0.8–49.8、offset ±49），Husky 以 ns/相位步进计（MMCM VCO 600–1200MHz）；跨设备迁移参数必须重换算（kb121）（cases/clock-glitch/01 + cases/tooling/139）；3) 触发：ext_single + tio4（复位沿）或 UART 模式；4) CW-Nano 单管、中断式毛格无 FPGA 同步（kb177）；5) 采集联动：功耗轨迹 diff 判定毛格效果、scope.adc.errors 检查削顶（kb130）；6) 官方金句：'毛格长什么样不重要，重要的是它对目标的效果'、'不必知道每个采样对应哪条指令'（cases/tooling/144-cw-tips-tricks-glitching）。",
+  "tags": [
+    "tooling",
+    "chipwhisperer"
+  ],
+  "applicability": [
+    "chipwhisperer",
+    "通用"
+  ],
+  "source": "cases/tooling/139-cw-husky-glitch-tutorials + cases/tooling/144-cw-tips-tricks-glitching + cases/clock-glitch/01-fault101-clock-glitch",
+  "created_at": "2026-11-15T00:00:00Z"
+}

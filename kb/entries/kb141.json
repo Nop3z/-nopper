@@ -1,0 +1,20 @@
+{
+  "id": "kb141",
+  "verified": false,
+  "title": "STM32F3/XMEGA 官方靶板参数域（ChipWhisperer 实测起点）",
+  "description": "fault101/fault201 各板位的 SOLN 参数可直接当扫描起点",
+  "detail": "官方 SOLN 参数（按板位，电压毛刺，cases/voltage-glitch/02 + cases/clock-glitch/01 + cases/tooling/143）：CWLITEARM width 30.7–36 / offset −40～−35 / repeat=7；CWLITEXMEGA width 43.5–47.8 / offset −48～−10 / repeat=11；CW308_STM32F3 width 47.6–49.6 / offset −19～−21.5 / repeat=5；ext_offset 0–150 起扫。bootloader MAC 绕过 lab（Husky）：width 2060–2100 / offset 2200–2260 / ext_offset 6000–10000（÷4，clk_mul=4）；XMEGA 版 ext_offset 7500–10000。时钟毛刺（clock_xor）：CWLITEARM width 0.8–3.6（周期%）、offset −4～−2、ext_offset 0–100。RSA lab（CW308_SAM4S）：clock_xor width=−9、offset=−38.3、ext_offset 7.0M–7.1M。注意：官方明示电压毛刺结果对毛刺电路本身（哪怕一根导线）非常敏感，参数须按台架重标定（kb196）；cpey 平台提供 STM32F302R8+DAC 波形毛刺的替代实现（cases/voltage-glitch/177-cpey-glitch-platform）。",
+  "tags": [
+    "chip-family",
+    "stm32f3",
+    "xmega",
+    "chipwhisperer"
+  ],
+  "applicability": [
+    "stm32f3",
+    "xmega",
+    "sam4s"
+  ],
+  "source": "cases/voltage-glitch/02-fault101-voltage-glitch + cases/clock-glitch/01-fault101-clock-glitch + cases/tooling/143-cw-fault101-intro-bootloader + cases/clock-glitch/03-fault201-aes-rsa-dfa + cases/voltage-glitch/177-cpey-glitch-platform",
+  "created_at": "2026-11-15T00:00:00Z"
+}

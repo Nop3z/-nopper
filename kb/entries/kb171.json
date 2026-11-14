@@ -1,0 +1,17 @@
+{
+  "id": "kb171",
+  "verified": false,
+  "title": "防御：Secure Boot 设计要点（签名 vs hash、验证时序）",
+  "description": "从已公开绕过案例反推的启动链设计",
+  "detail": "从绕过案例反推的设计面：1) 签名校验与 hash 计算分离——Starlink 攻击只毛格签名比对，patched BL2 的 hash 仍须合法（验证的是 RSA 签名而 hash 未被攻击）；设计上 hash 计算应独立并跨级复核（cases/voltage-glitch/40 + cases/talks/21）；2) 校验时序——ESP32 BootROM 在 bnei@0x400075B7 的分支处被打（毛格窗=最后一帧 MOSI 到 'secure boot check fail' 之间）；设计上校验分支的判定应多重执行（cases/voltage-glitch/196 + cases/secure-boot/27）；3) shellcode 装载窗——AR2023-007：毛格在 ROM 中打出缓冲区溢出后，'Secure Boot 完成篡改识别之前'的跳转是关键窗；设计上 ROM 缓冲区边界检查不应依赖单一比较（cases/secure-boot/82）；4) OTP/eFuse 读取期——V1 在 UART 前 ~500µs 的纯硬件段打掉 eFuse 读保护（kb172）；5) 故障签名必须验证（kb166）；6) FI 漏洞的粒度定义——同一目标下电压毛格与激光注入是两个不同漏洞（FIRM 模型，cases/other/246），威胁建模时按'技术×子系统'枚举。",
+  "tags": [
+    "defense",
+    "secure-boot",
+    "design"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/40-starlink-fi + cases/talks/21-defcon30-starlink-secure-boot + cases/voltage-glitch/196-limitedresults-esp32-fullsecure + cases/secure-boot/27-raelize-taofi-crowbar-writeup + cases/secure-boot/82-espressif-ar2023-007 + cases/other/246-raelize-firm-reference-model",
+  "created_at": "2026-11-15T00:00:00Z"
+}

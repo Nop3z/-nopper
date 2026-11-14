@@ -1,0 +1,17 @@
+{
+  "id": "kb106",
+  "verified": false,
+  "title": "攻击窗口确定法总流程（粗扫→敏感区→细扫→边界二分）",
+  "description": "从无先验到 ns 级窗口边界的四级收敛管线",
+  "detail": "统一管线（跨电压/时钟/EMFI 通用）：1) 粗扫——全参数空间大步进（fault101：ext_offset 0–150 每步 1；TAoFI：delay 全程 0–161µs）只求'有没有效果'，成功/复位/无响应分开计数；2) 定敏感区——用功耗时间线（trig_count/SAD）、UART 边沿、DPA 对照或静态指令计数把窗口缩小到一段；3) 细扫——敏感区内步进收窄（Raelize：161µs 全窗→73µs 热点→73950–74000ns 细扫，成功率升至 34.2%）；4) 边界二分——在成功点邻域沿每轴二分找 min/max，得到 window_min/window_max 落 kb。要点：粗扫命中的第一个点不是终点而是起点；崩溃≠成功（crash 单独计数）；成功率 2.5%（RP2350 OTP，cases/voltage-glitch/197）到 34.2%（ESP32，cases/secure-boot/27）都是常态，先记点再扩窗。",
+  "tags": [
+    "fault-injection",
+    "windowing",
+    "methodology"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/clock-glitch/01-fault101-clock-glitch + cases/voltage-glitch/02-fault101-voltage-glitch + cases/secure-boot/27-raelize-taofi-crowbar-writeup + cases/voltage-glitch/197-rp2350-otp-glitch-kesenheimer + cases/emfi/240-raelize-ipq40xx-qsee-emfi",
+  "created_at": "2026-11-15T00:00:00Z"
+}

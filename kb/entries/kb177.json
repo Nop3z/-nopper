@@ -1,0 +1,16 @@
+{
+  "id": "kb177",
+  "verified": false,
+  "title": "ChipWhisperer-Nano 定时特殊性",
+  "description": "中断式毛格的时间换算与教学适配",
+  "detail": "特殊性：CW-Nano 毛格为中断式、无 FPGA 同步，时间换算用经验公式 glitch_time = 47.3 + scope.glitch.ext_offset/16（大 ext_offset ≳300、adc.clk_freq=7.5M 时成立；15M 时约翻倍）；内部时钟目标时精度不同步但可用 CLKGEN 类似做法提升（cases/tooling/144-cw-tips-tricks-glitching nano_glitch_time/improving_glitch_precision 篇）。教学面：SIGPwny 用 CW-Nano（$60）+自制靶板做入门实验课——width 暴扫、GPIO/LED 自置触发、offset 用目标内 trigger 指令确定、自动化重试；slides 的四条问题-对策表：宽度不精确→实验+暴力扫、offset 未知→自置触发、时钟不同步→自动化重复、触发不可靠→换 GPIO（cases/talks/84-sigpwny-fi-lab）。SOLN 2_1B 为 CW-Nano 单 MOSFET 变体解法（cases/tooling/143-cw-fault101-intro-bootloader）。",
+  "tags": [
+    "tooling",
+    "chipwhisperer-nano"
+  ],
+  "applicability": [
+    "chipwhisperer-nano"
+  ],
+  "source": "cases/tooling/144-cw-tips-tricks-glitching + cases/talks/84-sigpwny-fi-lab + cases/tooling/143-cw-fault101-intro-bootloader",
+  "created_at": "2026-11-15T00:00:00Z"
+}

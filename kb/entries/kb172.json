@@ -1,0 +1,20 @@
+{
+  "id": "kb172",
+  "verified": false,
+  "title": "防御：eFuse/OTP 读取与配置的保护面",
+  "description": "OTP transfer 窗口、读保护位与烧写时机",
+  "detail": "攻击面（读出方）：1) OTP transfer 窗口——SoC 启动早期把 eFuse 内容搬到 shadow 寄存器的纯硬件窗口可被 EM 毛格位级腐坏（复位沿锚 969µs；block0 越靠前的位越早打），可关 Secure Boot/读保护位、演示读出 SBK（cases/emfi/242-raelize-esp32-otp-transfer-emfi）；2) 读保护位毛格打掉——ESP32 在 eFuse 控制器初始化窗口（UART 前 ~500µs 纯硬件段）打掉读保护后统计恢复 FEK/SBK（cases/voltage-glitch/196）；3) DEBUG_DISABLE——RP2350 的 CRIT1.DEBUG_DISABLE 被激光双位翻转恢复 secure debug；其软锁（otp_hw->sw_lock[48]）若在固件早期未收紧即被 rescue reset 绕过——软件锁要尽早（cases/laser-optical/96-rp2350-donjon-photon-emission）。烧写方（防御）：nRF52 lock_nrf() 写 UICR.APPROTECT 是正确姿势（cases/emfi/115 的 lock/unlock 用法）；debug 状态损坏类副作用（CC2541）说明写坏比不写更糟（kb193）。设计建议：OTP 值读取加冗余投票；shadow 搬运后做一致性校验；密钥槽独立于配置槽。",
+  "tags": [
+    "defense",
+    "efuse",
+    "otp"
+  ],
+  "applicability": [
+    "esp32",
+    "rp2350",
+    "nrf52",
+    "通用"
+  ],
+  "source": "cases/emfi/242-raelize-esp32-otp-transfer-emfi + cases/voltage-glitch/196-limitedresults-esp32-fullsecure + cases/laser-optical/96-rp2350-donjon-photon-emission + cases/emfi/115-hextree-faultier-glitchtag",
+  "created_at": "2026-11-15T00:00:00Z"
+}

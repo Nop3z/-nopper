@@ -1,0 +1,18 @@
+{
+  "id": "kb138",
+  "verified": false,
+  "title": "Bellcore/Lenstra 故障签名数学利用（RSA）",
+  "description": "从错误签名恢复私钥的判定链与前置条件",
+  "detail": "利用链：1) CRT-Bellcore——对 CRT-RSA 签名注入使 Sp/Sq/重组合故障化，gcd(s_faulty − s_correct, n) 恢复素因子 p/q → 私钥 d；fault201 Lab 2_1 经验：扫 ext_offset 7,000,000–7,100,000（签名运算 >10M 周期的后段），⚠ 官方固件先做签名自检，课程中注释掉自检后才可攻击——'签名自检挡路'是二跳限制的经典反例（cases/clock-glitch/03-fault201-aes-rsa-dfa）；2) Lenstra 型（无正确签名）——非 CRT 实现（Montgomery+atomic pattern）单条指令跳过仍可恢复 d：服务器以 powmod(msg, e·d'−1, n)==1 验证（cases/ctf/85-fcsc2026-bellcore）；3) 不验证输出的后果——PSS padding 不影响 gcd(s_faulty−s_correct, n) 结构；故障签名不验证直接输出=经典 Bellcore 攻击面（cases/ctf/141-fcsc2026-provably-secure-signature）；4) 硬化版——d 经随机欧几里得除法拆分 mask·q+rem 后单故障预算攻击路径 unknown（官方无公开题解，cases/ctf/140-fcsc2026-bellcore-hardened）；5) 敏感位地图——Manticore 枚举 938 bit 中 45 个（4.8%）泄漏私钥，供宽毛刺挑位簇；仅确定性 padding 适用（cases/other/254-trailofbits-rsa-fault-analysis-manticore）；6) 常时实现——SMA-always 固定指令故障日志可离线恢复 d（cases/ctf/292-fcsc2025-mille-fautes）。",
+  "tags": [
+    "dfa",
+    "rsa",
+    "methodology"
+  ],
+  "applicability": [
+    "通用",
+    "rsa 实现"
+  ],
+  "source": "cases/clock-glitch/03-fault201-aes-rsa-dfa + cases/ctf/85-fcsc2026-bellcore + cases/ctf/141-fcsc2026-provably-secure-signature + cases/ctf/140-fcsc2026-bellcore-hardened + cases/other/254-trailofbits-rsa-fault-analysis-manticore + cases/ctf/292-fcsc2025-mille-fautes",
+  "created_at": "2026-11-15T00:00:00Z"
+}

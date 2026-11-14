@@ -1,0 +1,17 @@
+{
+  "id": "kb190",
+  "verified": false,
+  "title": "观测定窗仪器链（示波器/RBM/逻辑分析仪/Beagle480/ADC 录波）",
+  "description": "把时间窗量出来的测量工具组合",
+  "detail": "组合：1) 示波器单沿定窗——nRF52：DEC1 找上电 ~1s 后 ≥100mV 电压下降沿作最佳注入点，DEC4 反映系统功耗模式（Flash/UICR 访问纹理）辅助对齐（cases/voltage-glitch/65-nrf52-cve-27211-linfeng）；2) 分段采集——PicoScope 3206d Rapid Block Mode：一次触发链抓多段波形（段边界对齐 GPIO26 选通沿），配 'L' 平均加密/'M' 链式加密命令做 EM 平均化（cases/tooling/203-raelize-rapidblockmode）；3) 逻辑分析仪量通信窗——BP5 案例 UART 回车到应答之间 ≈29µs 多次测量一致（cases/tooling/253-greybeard-buspirate5-glitch）；4) 总线分析仪触发——Beagle 480 抓 WinUSB descriptor 请求前两字节即触发（USB 栈 4.2–5.7µs 抖动，实测取 4.4µs 毛格延时）（cases/emfi/247-colinoflynn-trezor-usb-length-check-emfi）；5) 注入器 ADC 录波——Faultier configure_adc(ADC_CROWBAR,6000) 录 crowbar 波形定 delay 锚点（cases/emfi/115）；6) CW 轨迹 diff（kb130）。原则：触发与观测同源可对账（kb173）。",
+  "tags": [
+    "tooling",
+    "instrumentation",
+    "windowing"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/65-nrf52-cve-27211-linfeng + cases/tooling/203-raelize-rapidblockmode + cases/tooling/253-greybeard-buspirate5-glitch + cases/emfi/247-colinoflynn-trezor-usb-length-check-emfi + cases/emfi/115-hextree-faultier-glitchtag",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,19 @@
+{
+  "id": "kb163",
+  "verified": false,
+  "title": "防御：硬件毛格检测器（glitch detector）现状与边界",
+  "description": "检测-复位机制在 RP2350/ESP32 新代的实效",
+  "detail": "现状：1) RP2350 自带 glitch detectors 与 redundancy co-processor，但 39C3 演示 bootrom 期 double glitch 直读 OTP 仍成功（检测器挡不住设计良好时序的短脉冲）——cases/talks/130-rp2350-39c3-double-glitch；courk 的激光攻击同样在该芯片上实现单脉冲绕 SB（cases/laser-optical/63）；BSides London 讲者评价 RP2352 新缓解的当时有效性（cases/talks/133-bsideslondon2024-fi-intro）；2) Espressif——AR2023-007 通告披露：后续系列（H2/P4/C5）硬件集成毛格检测电路，检出该类毛格即自动复位（cases/secure-boot/82-espressif-ar2023-007）；3) ESP32-V3——修版使 eFuse 密钥的 EMFI dump 失败（FI 加固生效），但 AES 加速器侧信道仍在（FI 加固≠SCA 加固，cases/emfi/61-esp32v3-firmware-encryption）；4) 定制安全 MCU——奔驰防盗器 ECU 用定制 MCU+电压/时钟监控器+封焊熔丝位（troopers25 摘要，cases/voltage-glitch/97-mercedes-immobilizer-overvoltage）。设计启示：检测阈值要低于已知可达的塌陷深度；检测-复位本身也可被定向毛格攻击（复位路径成为新窗口）。",
+  "tags": [
+    "defense",
+    "glitch-detector",
+    "hardware"
+  ],
+  "applicability": [
+    "rp2350",
+    "esp32",
+    "通用"
+  ],
+  "source": "cases/talks/130-rp2350-39c3-double-glitch + cases/secure-boot/82-espressif-ar2023-007 + cases/emfi/61-esp32v3-firmware-encryption + cases/voltage-glitch/97-mercedes-immobilizer-overvoltage + cases/talks/133-bsideslondon2024-fi-intro",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,19 @@
+{
+  "id": "kb166",
+  "verified": false,
+  "title": "防御：常时实现/atomic pattern 防不住 FI（需输出验证）",
+  "description": "SCA 防线对 FI 失效的数学证据",
+  "detail": "核心结论：常时化（square-and-multiply-always）、atomic pattern、CRT 布置防的是时间/功耗形状泄露，不防指令级故障。证据：1) FCSC 2026 Bellcore 1/2——完全避开 CRT（纯 Montgomery+atomic pattern 查表）的单故障仍恢复 d；官方评语'避开 CRT 不足以免疫'（cases/ctf/85-fcsc2026-bellcore）；2) SMA-always——固定指令随机化故障日志离线恢复 d（cases/ctf/292-fcsc2025-mille-fautes）；3) ECDSA 原子模式——原子化标量乘被 VM 故障接口打穿（cases/ctf/291-fcsc2025-atomic-secable）；4) 唯一可见的硬防线——CRT-RSA 输出前对故障签名做验证（verify before output）：FCSC 2026 'Provably Secure Signature' 挑战设定恰恰是'学会正确协议后放心地不再验证签名'被打穿（cases/ctf/141-fcsc2026-provably-secure-signature）；fault201 官方固件的签名自检也让单毛格攻击失效（二跳限制）（cases/clock-glitch/03）。设计建议：密码输出必经验证；验证本身防毛格跳过（独立路径+双重执行）。",
+  "tags": [
+    "defense",
+    "crypto",
+    "countermeasure"
+  ],
+  "applicability": [
+    "rsa",
+    "ecdsa",
+    "通用"
+  ],
+  "source": "cases/ctf/85-fcsc2026-bellcore + cases/ctf/141-fcsc2026-provably-secure-signature + cases/ctf/291-fcsc2025-atomic-secable + cases/ctf/292-fcsc2025-mille-fautes + cases/clock-glitch/03-fault201-aes-rsa-dfa",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "kb168",
+  "verified": false,
+  "title": "防御评估：schmoo plot 划定 safe/glitching 区域",
+  "description": "用参数平面热图量化安全裕量",
+  "detail": "方法：绘制参数平面（width×offset / delay×length / 功率×坐标）上的 safe region vs glitching region，防御侧据此量化'离最近的故障区还有多远'。出处：Nullcon Goa 2025 防御演讲（Siemens Technology+IIIT Bangalore，Cortex-M4，key moment 4:00）——用 ChipWhisperer-Lite 现场搭台演示毛格如何破坏取指/译码/执行，并评估对策有效性（cases/talks/132-nullcon2025-glitch-sw-countermeasures）。攻击侧同构工具：TAoFI-Analyzer 的 delay×length 着色散点/3D 图（cases/voltage-glitch/07）、findus 本地 web 热区可视化（cases/voltage-glitch/111）、Flipper 实时故障热图 CSV（cases/voltage-glitch/118）、raiden-pico glitch_heatmap.py（cases/voltage-glitch/116）。实践：产品化评估应把 schmoo 扫描纳入例行测试，以最外层故障边界到标称工作点的距离作裕量指标；边界随温度/批次漂移（kb133），需复测。",
+  "tags": [
+    "defense",
+    "evaluation",
+    "visualization"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/talks/132-nullcon2025-glitch-sw-countermeasures + cases/voltage-glitch/07-raelize-taofi + cases/voltage-glitch/111-findus-pico-glitcher-lib + cases/voltage-glitch/118-glitchtrigger-flipper + cases/voltage-glitch/116-raiden-pico-rp2350",
+  "created_at": "2026-11-15T00:00:00Z"
+}

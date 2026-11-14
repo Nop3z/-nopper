@@ -1,0 +1,18 @@
+{
+  "id": "kb173",
+  "verified": false,
+  "title": "hwctl 触发接线总表：UartGuarder TRI / SmartHub / 示波器 EXT 同源",
+  "description": "nopper 台架上触发信号的分路与延迟补偿",
+  "detail": "nopper 工具面（plan/domain-map.md §6：物理作用收敛到受控 hwctl CLI）。触发接线模式（按案例可复用点归纳）：1) UartGuarder TRI——UART 帧触发+可编程延迟注入正是其形态（fault101 'p' 帧、Starlink UART 触发、191 的 arm() 后发同步字均同构）（cases/clock-glitch/01 + cases/voltage-glitch/40 + cases/voltage-glitch/191）；2) 复位/GPIO 沿——PowerShorter 的电源/复位通道与各案例 NRST 沿触发一一对应（cases/voltage-glitch/05 + 06）；3) 同源多路——同一物理信号多路分送：Husky TIO1-4 分接 UART TX/RESET/PROGRAM/SPI CS（cases/tooling/245）；触发信号同时进示波器 EXT 通道做时间对账（cases/tooling/245 的 PicoScope 三通道验证 A=RESET/B=SPI CS/C=GlitchOut）；4) 延迟补偿——每条触发链有固定硬件 latency，必须标定：Husky trigger_delay=0 也不即发（cases/emfi/110）、ChipSHOUTER 触发→脉冲延迟 75ns/抖动 150ps（cases/emfi/145）、CW-Nano 公式（kb177）；hwctl 应把每条链的 latency 记入配置并在换算时扣除。",
+  "tags": [
+    "tooling",
+    "hwctl",
+    "triggering"
+  ],
+  "applicability": [
+    "hwctl",
+    "通用"
+  ],
+  "source": "plan/domain-map.md §6 + cases/clock-glitch/01-fault101-clock-glitch + cases/voltage-glitch/40-starlink-fi + cases/voltage-glitch/191-stm32f103-rdp1-csdn-powershorter + cases/tooling/245-raelize-ai-fi-claude-code-esp32 + cases/emfi/110-ot-sca-riscv-fi + cases/emfi/145-newae-forum-chipshouter-cw-trigger",
+  "created_at": "2026-11-15T00:00:00Z"
+}

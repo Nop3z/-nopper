@@ -1,0 +1,21 @@
+{
+  "id": "kb170",
+  "verified": false,
+  "title": "防御：把 FI 仿真塞进开发流/CI",
+  "description": "fault_hardened 断言、敏感位地图与 DSTG 的预防性用法",
+  "detail": "思想：物理 FI 攻击成本高，但等价的故障注入可以在仿真里廉价全量地做，防御者在开发期就能知道自己代码抗不抗打。工具链：1) Rust 开发流——自定义 assert_eq! 宏（rust_fi）+ Rainbow 仿真 + fi_check.py 自动对 test_fi_* 函数做单故障扫描，addr2line 把故障指令映射回源码行；fault_hardened/ 提供抗单故障 Rust 类型作对照组；'这个函数抗故障吗'变成一条命令（cases/other/213-fi-checks-pin-verification + cases/other/209-rainbow-fi-simulator）；2) RTL/仿真级——GlitchGlück DSTG 把'毛格能把执行引向哪个软件漏洞'变成图搜索（缓冲区溢出/指令复制/PIN 绕过三案例）（cases/tooling/206-glitchgluck-guided-fi）；Chiffre 的注解式插桩可进 CI（cases/riscv-fi/166-ibm-chiffre）；3) 密码对策评估——SPHINCS+ 官方 artifact 仿真→实测两段式验证对策（cases/dfa/200-sphincsplus-fa-tches23）；4) 敏感位地图——Manticore 枚举给宽毛格类故障挑位簇（cases/other/254-trailofbits-rsa-fault-analysis-manticore）。评估口径建议采用 FIRM 定义（kb169）。",
+  "tags": [
+    "defense",
+    "ci",
+    "simulation"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/other/213-fi-checks-pin-verification + cases/other/209-rainbow-fi-simulator + cases/tooling/206-glitchgluck-guided-fi + cases/riscv-fi/166-ibm-chiffre + cases/dfa/200-sphincsplus-fa-tches23 + cases/other/254-trailofbits-rsa-fault-analysis-manticore",
+  "commands": [
+    "python fi_check.py --cli --path pin_verif",
+    "python fi_check.py --cli test_fi_simple -r   # 重放命中故障轨迹"
+  ],
+  "created_at": "2026-11-15T00:00:00Z"
+}

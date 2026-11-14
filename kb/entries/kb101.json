@@ -1,0 +1,22 @@
+{
+  "id": "kb101",
+  "verified": false,
+  "title": "电压毛刺（Vcc glitch）扫描方法论",
+  "description": "上电循环 × 偏移扫描定位成功窗口的标准流程",
+  "detail": "前提：接口分析员已给出触发描述（如 bootloader 解密后跳转点）与安全域（v_target 下限）。流程：1) 固定 v_target（常为标称值的 80–95%，先粗后细）；2) 扫 delay_ms（上电后延时，粗步进如 0.5ms 全程扫一遍）找响应敏感区；3) 在敏感区内扫 ext_offset × width（ChipWhisperer 以 cycle 为单位，width 常从 ~5% 时钟周期起试）；4) 出现第一个 success 立即停扫记点，改为在成功点邻域细扫找窗口边界；5) 每批落 glitch_result，崩溃单独计数（crash≠success）。止损：连续 3 批全 crash → 供电轨道回标称值、人工复位确认。经验：成功窗口通常极窄（ns 级），粗扫找不到不代表不可打，先加密扫。安全：毛刺源与目标共地，v_target 永不低于安全域。案例佐证：fault101 教程 ext_offset 0–150 全程扫（cases/tooling/143-cw-fault101-intro-bootloader），TAoFI 全参数空间入库后可视化收敛（cases/voltage-glitch/07-raelize-taofi）。",
+  "commands": [
+    "python -m hwctl glitch-scan --mode voltage --v-target 2.7 --delay 0:50:0.5 --width 10:60 --ext-offset 40:60",
+    "sapper finding 'voltage glitch @ ext_offset=47 width=32 打出 bootloader 跳过' --outcome success --param f012"
+  ],
+  "tags": [
+    "fault-injection",
+    "voltage-glitch"
+  ],
+  "applicability": [
+    "stm32",
+    "通用 MCU",
+    "安全启动"
+  ],
+  "source": "plan/domain-map.md §4 示例设计 + cases/tooling/143-cw-fault101-intro-bootloader + cases/voltage-glitch/07-raelize-taofi + cases/tooling/144-cw-tips-tricks-glitching",
+  "created_at": "2026-11-15T00:00:00Z"
+}

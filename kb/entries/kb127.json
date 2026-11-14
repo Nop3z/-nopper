@@ -1,0 +1,20 @@
+{
+  "id": "kb127",
+  "verified": false,
+  "title": "拆去耦电容决策树（为什么拆、拆哪颗、拆不了怎么办）",
+  "description": "电容会平滑毛刺——但拆错位置反而坏事",
+  "detail": "原理：去耦电容吸收毛刺能量，使轨塌陷不够深/不够快；实测不拆电容的注入全部失败（STM32F103 PowerShorter 案例，cases/voltage-glitch/191）。决策树：1) 找目标供电域的滤波电容——查原理图/PCB 定位（MAX78000FTHR：查数据手册定 VCOREA 后拆 C17/C20/C53/C55/C73/C75+拆 buck U8，cases/talks/84-sigpwny-fi-lab）；2) 触发沿线电容也要拆——RESET 线去耦电容必须拆掉以获得干净陡峭触发沿（cases/voltage-glitch/113）；3) 拆后验证——示波器对比拆电容前后电源迹线特征差异显著（cases/voltage-glitch/41-nrf52-crowbar；glitchtip 照片，cases/voltage-glitch/08）；4) 拆不了时——a) 电容不在芯片旁→改芯片电源脚就近焊 SMA 短接（cases/tooling/253）；b) 完全不动板→glitchsink 电流汲取（kb118，cases/tooling/202）；c) 整片瞬时断电路线可不采样 NRST、对电容不敏感（ESP8266 连续两写电源脚，cases/voltage-glitch/190）；d) Hextree GlitchTag 干脆预拆好并引出 'Glitch Here' 连接点（cases/emfi/115-hextree-faultier-glitchtag）。",
+  "tags": [
+    "fault-injection",
+    "voltage-glitch",
+    "hardware"
+  ],
+  "applicability": [
+    "stm32",
+    "nrf52",
+    "atmega328p",
+    "通用 MCU"
+  ],
+  "source": "cases/voltage-glitch/191-stm32f103-rdp1-csdn-powershorter + cases/talks/84-sigpwny-fi-lab + cases/voltage-glitch/113-stm8-interactive-glitcher + cases/voltage-glitch/41-nrf52-crowbar + cases/tooling/253-greybeard-buspirate5-glitch + cases/tooling/202-glitchsink-samyk + cases/voltage-glitch/190-stm32f4-rdp-fpb + cases/emfi/115-hextree-faultier-glitchtag",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,26 @@
+{
+ "id": "kb103",
+ "verified": false,
+ "title": "SWD 读取保护（RDP）下的固件提取思路",
+ "description": "接口分析员遇到 protected=true 的决策树",
+ "detail": "【分工】固件提取由研究员人工执行（fork-plan §13.4.1）：Agent 不做 SWD/JTAG/ISP dump，仅在研究员提供镜像后做 sha256 登记与静态分析。以下为研究员的人工参考决策树。\n\n先分级：RDP Level 1（可降级但全擦）/ Level 2（调试口永久死锁）——用调试器连一下看报错形态区分。Level 1 可行路线：a) 系统 bootloader（ROM ISP，如 STM32 系统存储器的 UART/DFU）——RDP 不阻止 ISP 读.Option Bytes 检查，多数实现禁止回读受保护区，但可用于擦除降级（代价：固件全失）；b) 故障注入打调试口解锁（已有公开研究对部分器件有效，逐型号试：STM32F1 见 cases/voltage-glitch/05-f103-analysis-rdp1、nRF52 见 cases/voltage-glitch/41-nrf52-crowbar、LPC 见 cases/voltage-glitch/112-syss-lpc1343-crp）；c) 侧信道/密钥提取（高成本，最后手段）；d) 非毛刺的时序步进提取（STM32G0 TraceRip，cases/bootrom-firmware-dump/83-tracerip-stm32g0）。提取成功判据：OpenOCD/pyOCD dump_image 出的镜像 sha256 稳定且能被 binwalk 识别。注意：JTAG/SWD 若被 fuse 关闭，物理接线仍要记录（后续 EMFI 可能复用点位）。禁止：盲目 mass erase 后不先落 interface fact（损失唯一证据）。",
+ "commands": [
+  "pyocd cmd -t <target> -c 'readblock 0x08000000 0x40000 --bin out.bin'",
+  "openocd -f interface/cmsis-dap.cfg -f target/<t>.cfg -c 'init; dump_image fw.bin 0x08000000 0x40000; shutdown'",
+  "binwalk -Me fw.bin"
+ ],
+ "tags": [
+  "fw-analysis",
+  "swd",
+  "rdp",
+  "human-only"
+ ],
+ "applicability": [
+  "stm32",
+  "gd32",
+  "n32",
+  "通用 Cortex-M"
+ ],
+ "source": "plan/domain-map.md §4 示例设计 + cases/voltage-glitch/05-f103-analysis-rdp1 + cases/voltage-glitch/41-nrf52-crowbar + cases/voltage-glitch/112-syss-lpc1343-crp + cases/bootrom-firmware-dump/83-tracerip-stm32g0",
+ "created_at": "2026-11-15T00:00:00Z"
+}

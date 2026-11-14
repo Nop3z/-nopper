@@ -1,0 +1,20 @@
+{
+  "id": "kb125",
+  "verified": false,
+  "title": "无触发异步注入（占用率饱和 + 异步乱打）",
+  "description": "拿不到触发线时的替代策略与代价",
+  "detail": "当目标侧无可用触发信号（无 UART、无 GPIO 权限）时：1) 异步乱打+死循环——Raelize Google TV Streamer：表征/攻击代码跑成芯片上死循环，毛刺器异步乱打，等毛刺自然落入窗口；代价=setup 不精确（12500 次 0.13%→0.3%），收益=免去功率纹波触发等额外硬件（cases/emfi/244-raelize-gtv-streamer-setresuid-emfi）；2) 占用率饱和——Buchanan 打火机 EMFI：几乎无窗口控制（手指反应速度级），转而把 3MiB 缓存外的大数组全填同一对象引用并顺序遍历，迫使 CPU 每次都从 DRAM 取，99% 总线活动都是目标操作，随机毛刺几乎必然落在可利用访问上；成功信号=软件侧轮询指针比较（cases/emfi/252-buchanan-dram-emfi-piezo-root）；3) 循环重复投放——靶代码反复循环执行时毛刺随循环重复投放即可命中（Colin O'Flynn Remoticon，cases/talks/69-remoticon-2021-oflynn）；4) 自由运行靶——CW322 官方靶自含无限重复循环（300×300 乘法自检），任意时刻注入都落在循环内（cases/emfi/175-rtfm-cw322-simple-emfi-target）。共性：成功率显著低于同步注入，需更大实验预算与自动复位。",
+  "tags": [
+    "fault-injection",
+    "emfi",
+    "methodology"
+  ],
+  "applicability": [
+    "cortex-a",
+    "mediatek",
+    "pc-dram",
+    "通用"
+  ],
+  "source": "cases/emfi/244-raelize-gtv-streamer-setresuid-emfi + cases/emfi/252-buchanan-dram-emfi-piezo-root + cases/talks/69-remoticon-2021-oflynn + cases/emfi/175-rtfm-cw322-simple-emfi-target",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "kb189",
+  "verified": false,
+  "title": "FPGA 自建毛格器（Cmod A7 SystemVerilog / iCEstick 双板 / DE0 三设备架构）",
+  "description": "不依赖商业注入器的 RTL 路线",
+  "detail": "1) mdondd/voltage_glitching（unknown 许可，cases/tooling/167-mdondd-fpga-glitcher）：Digilent Cmod A7（Artix-7）SystemVerilog fault_injector：UART 9600 命令口设 32-bit offset/width/repeat（0xA0/0xA1/0xA2），arm/disarm（0x01/0x02）、手动触发（0x04）、armed 查询（0x03）、PING（0xC0→0x42）；PMOD G17=trigger_in、G19=fault_out；host/glitch.py 完整串口协议实现；唯一可自行修改 RTL 时序的自建方案；缺自动扫参/记录闭环（可借 kb188 热图思路补齐）。2) SySS iCEstick/iCEBreaker（类 BSD 文本，cases/tooling/282-icestick-icebreaker-glitcher）：极简 Verilog+MAX4619 双电压切换（Rigol DP832 双路供电），pylibftdi CLI（'iCE iCE Baby Glitcher'）；LPC CRP 绕过配套。3) BH EU 15 架构参照：glitch device + test case device + sampler device 三 FPGA 设备分工（cases/talks/22）。CLI 协议与 UartGuarder 命令面几乎同构（167 README 复用点）。",
+  "tags": [
+    "tooling",
+    "fpga",
+    "diy"
+  ],
+  "applicability": [
+    "fpga",
+    "通用"
+  ],
+  "source": "cases/tooling/167-mdondd-fpga-glitcher + cases/tooling/282-icestick-icebreaker-glitcher + cases/talks/22-bh-eu15-electrical-glitching",
+  "created_at": "2026-11-15T00:00:00Z"
+}

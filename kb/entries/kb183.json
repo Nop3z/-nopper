@@ -1,0 +1,22 @@
+{
+  "id": "kb183",
+  "verified": false,
+  "title": "Attack 基类六段编排（EM-Fault It Yourself）",
+  "description": "shout/reset/判定/自检的攻击脚本骨架",
+  "detail": "骨架（GPL-3.0，cases/emfi/45-emfi-diy-bench）：Attack 基类方法集 = name / init / shout()（调用 ChipShouter 注入）/ reset_target()（复位目标后循环）/ was_successful()（抽象方法，每个攻击脚本实现判定）/ critical_check()（每次注入后的安全自检，失败即停机）。运行：emfi-station Web 界面 + joystick 人工干预；emfi-station --simulate 可无硬件空跑熟悉界面。硬件：ChipSHOUTER + 3× Standa 8MT175-100 电动台 + SKR Pro/TMC2209 + 树莓派 + MLX90640 热像仪（监控靶面温度防过热，max_target_temp 保护）+2× USB 显微镜标定。对 nopper 的意义：毛格操作员脚本的六段式编排可直接映射 dispatch-capture/dispatch-scan（plan/domain-map.md §3）——shout=注入动作、was_successful=判定、critical_check=止损红线、reset_target=恢复。",
+  "tags": [
+    "tooling",
+    "bench",
+    "orchestration"
+  ],
+  "applicability": [
+    "chipshouter",
+    "通用"
+  ],
+  "source": "cases/emfi/45-emfi-diy-bench",
+  "commands": [
+    "pip install . && emfi-station --simulate",
+    "python -m emfi_station -a ATTACK_DIR"
+  ],
+  "created_at": "2026-11-15T00:00:00Z"
+}

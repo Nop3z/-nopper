@@ -1,0 +1,17 @@
+{
+  "id": "kb122",
+  "verified": false,
+  "title": "成功判定信号谱系（协议级/输出 diff/硬件寄存器/dump/反向判定）",
+  "description": "五类可观测判定信号与失败归因",
+  "detail": "判定通道分五类，逐案对照：1) 协议级——ISP/命令应答码翻转：STM32F1 ISP 0x11 应答 0x1F(拒)→0x79(ACK)（cases/voltage-glitch/191）、LPC1343 'R 0 4' 返回码 0（cases/voltage-glitch/112）、STM8 bootloader NACK(0x1f)→ACK(0x79)（cases/voltage-glitch/113、114）、ChipCon READ_STATUS 出现 0xb2（cases/voltage-glitch/42）、USBDM Connect() 返回 unsecured（cases/voltage-glitch/283）；2) 输出 diff/magic——串口出现 magic 字符串或额外内容：'LENNERT'（cases/voltage-glitch/40）、DUMP_START_MAGIC 0x10 0xAD 0xDA 0x7A（cases/voltage-glitch/06）、rootshell banner（cases/voltage-glitch/05）、'Sec boot pwned'（cases/voltage-glitch/196）、错误密文 diff（fault201）；3) 硬件寄存器——FLASH_OBR bit1 读 0（cases/voltage-glitch/80）、SWD IDCODE 0x2ba01477 + APPROTECTSTATUS（cases/voltage-glitch/08）、Mem-AP SDeviceEn=1（cases/laser-optical/96）；4) dump 校验——dump_image 后 sha256 稳定且 binwalk 可识别（kb103）；5) 反向判定——故障当'成功'信号：GRIT fault-01 'b' 关 val_check!=1337 反而进 secure bootloader 打印 flag2_boot（cases/talks/84-sigpwny-fi-lab）。失败归因：超时/无触发→复位类；异常→崩溃类；无变化→no_effect。全部可映射 kb179 的五色/C1-C5。",
+  "tags": [
+    "fault-injection",
+    "detection",
+    "methodology"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/191-stm32f103-rdp1-csdn-powershorter + cases/voltage-glitch/112-syss-lpc1343-crp + cases/voltage-glitch/40-starlink-fi + cases/voltage-glitch/06-stm32f1-picopwner + cases/voltage-glitch/80-0xrafasec-f1-crowbar + cases/voltage-glitch/08-nrf52-approprotect + cases/talks/84-sigpwny-fi-lab + cases/voltage-glitch/42-cc253x-crowbar",
+  "created_at": "2026-11-15T00:00:00Z"
+}

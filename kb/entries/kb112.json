@@ -1,0 +1,17 @@
+{
+  "id": "kb112",
+  "verified": false,
+  "title": "功耗轨迹时间线定窗（trig_count / SAD / 轨迹平移）",
+  "description": "用功耗采样把窗口从'猜'变成'量'",
+  "detail": "方法族：1) trig_count——fault101 bootloader 转储 lab 用 scope.adc.trig_count 量出打印循环总周期数，glitch_spots=range(0, trig_count) 全范围逐周期扫（cases/clock-glitch/01-fault101-clock-glitch）；2) SAD 形状定位——chipwhisperer.analyzer.preprocessing.find_min_sad 找功耗形状突变点（AddRoundKey 与下一轮之间），fault201 以此定位 AES 轮边界后细扫 glitch_loc=range(400,800)（cases/clock-glitch/03-fault201-aes-rsa-dfa）；3) 轨迹对照——bootloader MAC 校验 lab 对比'认证失败 vs 成功'轨迹定位 MAC 计算区（adc.samples=24400, adc.offset=5000），收 ≥10 条疑似绕过轨迹后用 ResyncSAD/ResyncDTW 对齐做 CPA 验证（cases/tooling/143-cw-fault101-intro-bootloader）；4) 官方立场：不必知道每个采样对应哪条指令，定位'可利用区段'即可——移动 trigger_high 观察轨迹平移、插 NOP 作时间标记（cases/tooling/144-cw-tips-tricks-glitching）；5) GRIT 用 SCA 把 M09 比较点定位到 ext_offset≈157 后毛刺对准（cases/other/176-grit-avr-fi-testbed）。",
+  "tags": [
+    "fault-injection",
+    "windowing",
+    "side-channel"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/clock-glitch/01-fault101-clock-glitch + cases/clock-glitch/03-fault201-aes-rsa-dfa + cases/tooling/143-cw-fault101-intro-bootloader + cases/tooling/144-cw-tips-tricks-glitching + cases/other/176-grit-avr-fi-testbed",
+  "created_at": "2026-11-15T00:00:00Z"
+}

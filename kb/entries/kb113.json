@@ -1,0 +1,20 @@
+{
+  "id": "kb113",
+  "verified": false,
+  "title": "DPA/功耗对照先验定位（先缩小量级，最终以扫描为准）",
+  "description": "用已知差异状态的功耗对照定位读取时刻",
+  "detail": "做法：让目标分别处于两种已知状态抓 trace 相减，峰位≈敏感操作时刻。经典案例：LPC1114 CRP——分别烧 CRP=0xFFFFFFFF 与 0x00000000（汉明重量极值对照）以及'无效值=未锁 0x02345688'对'锁定值 0x12345678'（同汉明重量对照），抓 trace 找 fuse 字节读取时刻；随后在 100MHz clkgen 下扫 ext_offset 5180–5185 × repeat 7–40（cases/voltage-glitch/04-faultapp1-lpc1114-crp）。官方承认 DPA 峰值与实测有效 offset 并不完全对应（原因 unknown）——先验只缩小量级，最终以扫描为准（负知识见 kb195）。变体：nRF52 用 DEC1 上电后 ≥100mV 电压下降沿 + DEC4 功耗纹理（Flash/UICR 访问模式）对齐显著减少盲扫（cases/voltage-glitch/65-nrf52-cve-27211-linfeng）；SSTIC 2020 用上电功耗录波找 boot 攻击时机后 2 万次统计选点（cases/voltage-glitch/81-stm32-rdp-academic-papers 论文C）。",
+  "tags": [
+    "fault-injection",
+    "windowing",
+    "dpa"
+  ],
+  "applicability": [
+    "lpc",
+    "nrf52",
+    "stm32",
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/04-faultapp1-lpc1114-crp + cases/voltage-glitch/65-nrf52-cve-27211-linfeng + cases/voltage-glitch/81-stm32-rdp-academic-papers",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,19 @@
+{
+  "id": "kb145",
+  "verified": false,
+  "title": "nRF52 APPROTECT 家族（nRF52832/52840 多作者合并）",
+  "description": "UICR.APPROTECT 加载窗口的毛刺绕过：点位、参数与判定",
+  "detail": "机制：上电早期硬件状态机读 UICR.APPROTECT（0x10001208）并锁定 AHB-AP（无 BootROM 参与），毛格打乱该流程仅本次上电周期内恢复 SWD。注入点：DEC1/VCORE（核心电源去耦电容，DK 板 C5/国产仿板 C7 需按走线核对），拆该电容；dongle 上 DEC1 直接引线。参数（多作者实测）：atc1441——复电后 delay 2000–30000µs × width 0–30µs 闭环试 SWD（cases/voltage-glitch/08）；GIAnT/Rudman——最优 width 80–120ns，offset 自上电后 ~1029µs 起（1027–1100µs × 50–200ns 步进 10ns，临界区数月漂移）（cases/voltage-glitch/41）；Linfeng/CVE-2020-27211——ext_offset≈366500@100MHz（≈3.665ms）× width≈40（上限 49）× repeat 1–100（过轻无效、过重打挂）（cases/voltage-glitch/65）；Hextree——ADC 录 crowbar 波形定 delay≈2500×96 后随机扫 delay=(2500±100)×96、pulse 40–80（cases/emfi/115）；AirTag——电平转换监视上电沿+notebook 扫 delay（cases/voltage-glitch/286）。判定：SWD IDCODE 0x2ba01477 + APPROTECTSTATUS 未锁（'We Have a good glitch'）/ OpenOCD init+dump_image 0x0–0x100 快速验证 / nrf52_check()；勿触发 recover/eraseall。同目标另见 bilibili 中文视频（cases/cn-writeups/165，仅链接）。",
+  "tags": [
+    "chip-family",
+    "nrf52",
+    "approprotect"
+  ],
+  "applicability": [
+    "nrf52",
+    "nrf52832",
+    "nrf52840"
+  ],
+  "source": "cases/voltage-glitch/08-nrf52-approprotect + cases/voltage-glitch/41-nrf52-crowbar + cases/voltage-glitch/65-nrf52-cve-27211-linfeng + cases/emfi/115-hextree-faultier-glitchtag + cases/voltage-glitch/286-airtag-glitch-dump + cases/cn-writeups/165-bilibili-y4mrnie-nrf52-aprotect",
+  "created_at": "2026-11-15T00:00:00Z"
+}

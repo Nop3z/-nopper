@@ -1,0 +1,21 @@
+{
+  "id": "kb181",
+  "verified": false,
+  "title": "findus / Pico Glitcher 工具链（Kesenheimer）",
+  "description": "12 个项目靶库配套的 Python 框架",
+  "detail": "工具（GPL-3.0，cases/voltage-glitch/111-findus-pico-glitcher-lib + cases/voltage-glitch/112-syss-lpc1343-crp）：1) 硬件：Pico Glitcher v1/v2/v3 板（RP2040），板载毛格晶体管 crowbar（LP-glitch 直打 VCC，'switch up to 66 amps'）、multiplexing 档（v2+ 四档电压快速切换）、GLITCH 输出与 VTARGET 间串 10Ω 采样电阻供示波器验证；2) CLI：pico-glitcher.py --target /dev/ttyUSB1 --rpico /dev/ttyUSB2 --delay <s> <e> --length <s> <e>（ns 单位）[--power rk6006] [--dump]；3) 触发：glitcher.rising_edge_trigger()/falling_edge_trigger() 或 UART 字节触发（TRIGGER 接 USB-UART RX/TX）；4) 扫描：随机滚动 delay×length（kb132）+ Database 落盘 + 本地 web 127.0.0.1:8080 可视化热区 + glitcher.block(timeout) 区分触发命中/超时 + 遗传算法优化（docs/genetic.md）；5) classify 五色（语义变体警告 kb179）；6) 项目库：atmega328p/esp32/lpc1311/nrf52832(Airtag)/rp2040/rp2350/stm32f4xx/l 系/stm8s 等 12 个已验证项目；7) update-fw 按硬件版本刷固件。",
+  "tags": [
+    "tooling",
+    "findus",
+    "pico-glitcher"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/111-findus-pico-glitcher-lib + cases/voltage-glitch/112-syss-lpc1343-crp + cases/voltage-glitch/197-rp2350-otp-glitch-kesenheimer",
+  "commands": [
+    "pip install findus",
+    "python pico-glitcher.py --target /dev/ttyUSB1 --rpico /dev/ttyUSB2 --delay 1700000 1800000 --length 1000 5000"
+  ],
+  "created_at": "2026-11-15T00:00:00Z"
+}

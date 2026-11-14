@@ -1,0 +1,20 @@
+{
+  "id": "kb148",
+  "verified": false,
+  "title": "NXP LPC 家族 CRP：CRP1 毛刺与纯软件 ROP 路线",
+  "description": "LPC1114/1343/1311 读保护的已验证路线",
+  "detail": "1) LPC1114 CRP fuse——CW faultapp1：改板断 3.3V 走线串 12Ω；DPA 汉明重量对照定位 fuse 字节读取时刻→ext_offset 5180–5185×repeat 7–40；复位沿触发；判定=ISP read_block 被拒→允许，随后擦除重编程首 4KB（含 CRP 字）彻底解锁；'无效值=未锁'语义（0x02345688 落入无效区间）（cases/voltage-glitch/04-faultapp1-lpc1114-crp）；2) LPC1343 CRP——Pico Glitcher：复位上升沿触发，随机 delay/length 扫描；判定='R 0 4' 返回码 0 后 'R addr 32' 逐块 uu 编码 dump 32KB（cases/voltage-glitch/112-syss-lpc1343-crp）；3) LPC1343 纯软件 ROP（无毛刺）——ISP 'W 268443476 172' 写 UU 编码 ROP 链+checksum 直接执行读 0x000002fc（CRP 值），partial_overwrite 分支擦写扇 1 后 dump（cases/secure-boot/114-bootl-attacks-ches2021）；4) 注入器实现——iCEstick/iCEBreaker + MAX4619 双电压切换（REcon BrX 2017 方法，cases/tooling/282-icestick-icebreaker-glitcher）；findus 含 lpc1311 项目（cases/voltage-glitch/111）。",
+  "tags": [
+    "chip-family",
+    "lpc",
+    "crp"
+  ],
+  "applicability": [
+    "lpc1114",
+    "lpc1343",
+    "lpc1311",
+    "lpc"
+  ],
+  "source": "cases/voltage-glitch/04-faultapp1-lpc1114-crp + cases/voltage-glitch/112-syss-lpc1343-crp + cases/secure-boot/114-bootl-attacks-ches2021 + cases/tooling/282-icestick-icebreaker-glitcher + cases/voltage-glitch/111-findus-pico-glitcher-lib",
+  "created_at": "2026-11-15T00:00:00Z"
+}

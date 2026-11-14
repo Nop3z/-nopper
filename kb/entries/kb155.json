@@ -1,0 +1,19 @@
+{
+  "id": "kb155",
+  "verified": false,
+  "title": "Intel SGX / x86：软件电压操纵（指令级对齐）",
+  "description": "RAPL/MSR 欠压 + APIC 单步的 TEE 故障注入",
+  "detail": "形态：无外部硬件毛格器，软件写 IA32_RAPL 相关 MSR 做欠压（undervolt offset），故障落在 AES-NI 指令执行路径。窗口=指令级对齐：sgx-step 用 APIC timer one-shot 中断把 enclave 停在每条指令边界（AEX→观察→ERESUME），配合 SSA 帧读回 RIP 确定当前指令，计数到目标 AES-NI 指令时施加欠压——与硬件毛格的 µs 级 offset 扫描形成对照。触发=APIC 定时器中断（v1.4.0 起提供 privileged interrupt/call gates）。判定=输出 diff/密文错误（AES-NI 计算故障化）；demo app/memcmp 展示对非常量时间 memcmp 的确定性逐字符破解（线性时间优于噪声时序攻击）。VoltJockey 同族：pre-fault delaying 指令级对齐打 SGX 与 ARM TrustZone 的 RSA/AES。⚠ 现代 CPU 的 RAPL/欠压锁定与微码限制，复现前核对 sgx-step README 兼容性说明。（cases/voltage-glitch/47-plundervolt-sgx + cases/voltage-glitch/64-tee-voltage-manipulation）",
+  "tags": [
+    "chip-family",
+    "intel-sgx",
+    "tee",
+    "software-fi"
+  ],
+  "applicability": [
+    "intel-sgx",
+    "x86"
+  ],
+  "source": "cases/voltage-glitch/47-plundervolt-sgx + cases/voltage-glitch/64-tee-voltage-manipulation",
+  "created_at": "2026-11-15T00:00:00Z"
+}

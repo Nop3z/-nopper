@@ -1,0 +1,19 @@
+{
+  "id": "kb139",
+  "verified": false,
+  "title": "STM32F1 RDP1 家族（含 GD32/APM32 克隆）：注入点、窗口与判定",
+  "description": "F1 读保护绕过的完整家族画像",
+  "detail": "机制：RDP1 下 debug 读 flash 被拒，但 ISP bootloader 可用；攻击对象=flash 控制器对缓存 RDPRT 位（FLASH_OBR @0x4002201C bit1）的权限检查分支（cases/voltage-glitch/80）。窗口：NRST 释放沿后 5–50µs（8MHz 内部时钟，随时钟/批次变化）；UART 变体=0x11+0xEE 第 6 上升沿后 14.44µs（cases/voltage-glitch/191）。扫参：ext_offset 5–50µs 步进 0.1µs × width 20–200ns 步进 5ns，命中率 1/500–1/5000 必须自动化（cases/voltage-glitch/80）。利用：断电毛刺使目标从 SRAM 数据保持启动预埋 shellcode/FPB 两段式（Stage1 FPB 补丁复位向量、Stage2 UART dump），攻击板控制 POWER/BOOT0/NRST 三线（cases/voltage-glitch/05-f103-analysis-rdp1、cases/voltage-glitch/06-stm32f1-picopwner）；判定=rootshell banner / DUMP_START_MAGIC / OBR bit1=0 且同周期 dump（毛刺成功不永久解锁 RDP，复位即重新上锁——kb198）。BOR 制导（raiden-pico）：先表征目标 BOR 阈值与 SRAM 保持窗口再标定攻击电压域，通常第一次就成功（cases/voltage-glitch/116-raiden-pico-rp2350）。克隆差异：GD32F130/GD32F103/APM32F1 另有纯软件 NMI 路线（OpenOCD 写 SRAM 伪造向量+mww 触发 NMI+halt 读寄存器，cases/voltage-glitch/05 d1 系列）。",
+  "tags": [
+    "chip-family",
+    "stm32f1",
+    "rdp"
+  ],
+  "applicability": [
+    "stm32f1",
+    "gd32f1",
+    "apm32f1"
+  ],
+  "source": "cases/voltage-glitch/05-f103-analysis-rdp1 + cases/voltage-glitch/06-stm32f1-picopwner + cases/voltage-glitch/80-0xrafasec-f1-crowbar + cases/voltage-glitch/191-stm32f103-rdp1-csdn-powershorter + cases/voltage-glitch/116-raiden-pico-rp2350",
+  "created_at": "2026-11-15T00:00:00Z"
+}

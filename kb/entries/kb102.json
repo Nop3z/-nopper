@@ -1,0 +1,19 @@
+{
+  "id": "kb102",
+  "verified": false,
+  "title": "时钟毛刺 vs 电压毛刺 vs EMFI 适用面选择",
+  "description": "三种注入手段的覆盖域与硬件成本对比",
+  "detail": "时钟毛刺（clock glitch）：最便宜、时序精度最高（注入时钟，偏移以 cycle 计）；适用：同步外设读路径（闪存读取校验、 memcmp 比较），要求目标依赖外部时钟或可被注入时钟。电压毛刺（Vcc glitch）：中等成本；适用：宽时间窗的逻辑翻转（密码比较、状态机跳转），对去耦电容敏感、窗口更宽更粗糙。EMFI（电磁故障注入）：硬件最贵（探针+XYZ 台）；适用：无电气接触点（已封装、Vcc 不可扰）、空间选择性打 die 上特定模块；准确定位依赖台架标定。决策顺序：能接时钟 → 先时钟毛刺；Vcc 可扰 → 电压毛刺；两者都不可 → EMFI 栅格扫描。目标用内部 RC 振荡器时时钟毛刺通常不可行（案例佐证：cases/secure-boot/114-bootl-attacks-ches2021 的 78K0 内部 8MHz 振荡器不可预测、绝对 offset 因芯片而异；cases/talks/22-bh-eu15-electrical-glitching 给出时钟毛刺需拆晶振的前置条件）。",
+  "commands": [
+    "python -m hwctl plan --target <chip> --list-options"
+  ],
+  "tags": [
+    "fault-injection",
+    "strategy"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "plan/domain-map.md §4 示例设计 + cases/secure-boot/114-bootl-attacks-ches2021 + cases/talks/22-bh-eu15-electrical-glitching + cases/voltage-glitch/66-cn-writeup-index（yPin9 四技术参数模型）",
+  "created_at": "2026-11-15T00:00:00Z"
+}

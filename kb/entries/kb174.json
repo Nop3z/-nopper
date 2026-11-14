@@ -1,0 +1,18 @@
+{
+  "id": "kb174",
+  "verified": false,
+  "title": "PowerShorter 参数语义与三通道最小形态",
+  "description": "电源/复位/BOOT0 三线控制与 delay/pulse 单位",
+  "detail": "最小形态（f103-analysis 攻击板即原型）：只有电源/复位/BOOT0 三通道——PD0/PD1=Power、PD4=Reset、PD2=BOOT0；毛格动作=断电→监测 NRST 拉低→立即复电（cases/voltage-glitch/05-f103-analysis-rdp1）。Pi Pico 复刻同构：POWER_PIN=GPIO2、NRST=GPIO4 输入、BOOT0=GPIO5；固定时序：BOOT0 高→断电→等 NRST 低→复电→15ms→BOOT0 低→复位 15ms→释放（cases/voltage-glitch/06-stm32f1-picopwner）。PowerShorter 复刻案例的参数语义：E1 引擎输出接电源；TRIGGER_MODE.RISE 上升沿触发；先 arm() 再发 \\x7F 同步字与 0x11\\xEE；delay/pulse 随机扫描（glitch_delay 990–1050、glitch_pulse 15–30）但设备内部单位 unknown——**需要 PowerShorter 官方文档核实单位**（负知识，kb196）（cases/voltage-glitch/191-stm32f103-rdp1-csdn-powershorter）。ChipWhisperer 对照：LP/HP 双管选择+vglitch_reset（kb176/kb131）。",
+  "tags": [
+    "tooling",
+    "powershorter",
+    "hwctl"
+  ],
+  "applicability": [
+    "stm32f1",
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/05-f103-analysis-rdp1 + cases/voltage-glitch/06-stm32f1-picopwner + cases/voltage-glitch/191-stm32f103-rdp1-csdn-powershorter",
+  "created_at": "2026-11-15T00:00:00Z"
+}

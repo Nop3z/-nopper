@@ -1,0 +1,23 @@
+{
+  "id": "kb104",
+  "verified": false,
+  "title": "固件加密/打包识别与绕行路径",
+  "description": "提取物看不懂时的系统排查顺序",
+  "detail": "顺序：1) binwalk -Me 解包，识别文件系统（squashfs/jffs2/cramfs）与 bootloader 分区；2) 熵分析整段高熵=加密或压缩：对齐块 + 固定头部 → 可能是 KDF 包装（找明文头/魔数）；3) 引导流程：从 bootloader 反编译（Ghidra headless 批量出 C）追'解密→校验→跳转'链，定位密钥来源（eFuse/OTP/flash 尾部/硬编码）；4) 密钥在 eFuse：直接读不到，转向故障注入——在解密完成后、密钥销毁前的时间窗（固件分析师给 probe_point），从 RAM dump 或行为侧读明文（案例佐证：cases/voltage-glitch/196-limitedresults-esp32-fullsecure 在 eFuse 控制器初始化窗口毛刺打掉读保护位后统计恢复 FEK/SBK；cases/emfi/242-raelize-esp32-otp-transfer-emfi 打 OTP Transfer 搬运窗）；5) 已知平台（OpenWrt/厂商 SDK）先搜现成解包脚本。判据：解出的根文件系统含 /etc/init.d 或可识别的二进制家族即成功。",
+  "commands": [
+    "binwalk -Me fw.bin",
+    "python -c 'import math;print(\"entropy\", -sum(p*math.log2(p) for p in [b/256 for b in open(\"fw.bin\",\"rb\").read()[:65536]])/16)'",
+    "analyzeHeadless /tmp/ghidra proj -import fw.elf -postScript DecompAll.java -deleteProject"
+  ],
+  "tags": [
+    "fw-analysis",
+    "encryption",
+    "binwalk",
+    "ghidra"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "plan/domain-map.md §4 示例设计 + cases/voltage-glitch/196-limitedresults-esp32-fullsecure + cases/emfi/242-raelize-esp32-otp-transfer-emfi",
+  "created_at": "2026-11-15T00:00:00Z"
+}

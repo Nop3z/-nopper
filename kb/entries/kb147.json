@@ -1,0 +1,20 @@
+{
+  "id": "kb147",
+  "verified": false,
+  "title": "ESP32-C3/C6/V3：新代保护、SCA 与 FI 组合",
+  "description": "V3 EMFI 加固与新芯片的 CPA+FI 攻击面",
+  "detail": "1) AR2023-007（厂商确认）——ESP32-C3/C6：CPA 侧信道取首块 XTS-AES 密钥（~60 万条轨迹/5 天，仅首块 128B，非 class attack）+ 电压毛格在 ROM 代码打出缓冲区溢出装 shellcode→Secure Boot 识别前跳转执行；无公开 PoC；防御面：SiP 封装（PICO-V3）缓解外 flash 引脚路径、后续 H2/P4/C5 集成毛格检测即复位（cases/secure-boot/82-espressif-ar2023-007）；2) V3 加固结论——Ledger Donjon：V3 修版挡住了 eFuse 密钥的 EMFI dump（FI 加固生效），但 AES-256 固件加密密钥仍可被功耗侧信道完整恢复：AES 加速器 60K 条、上电解密流程 300K 条测量，实测含 Jade 硬件钱包（cases/emfi/61-esp32v3-firmware-encryption）。启示：V1 攻击知识不可直接迁移到 V3（kb196 参数漂移）；新代目标优先 SCA 与 FI 组合而非单 FI。",
+  "tags": [
+    "chip-family",
+    "esp32c3",
+    "esp32c6",
+    "esp32v3"
+  ],
+  "applicability": [
+    "esp32c3",
+    "esp32c6",
+    "esp32v3"
+  ],
+  "source": "cases/secure-boot/82-espressif-ar2023-007 + cases/emfi/61-esp32v3-firmware-encryption",
+  "created_at": "2026-11-15T00:00:00Z"
+}

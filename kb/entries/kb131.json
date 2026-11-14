@@ -1,0 +1,17 @@
+{
+  "id": "kb131",
+  "verified": false,
+  "title": "复位循环与崩溃恢复（每轮注入前的确定性初始态）",
+  "description": "reboot_flush / power-cycle-mode / 断点续扫的恢复套路",
+  "detail": "1) ChipWhisperer 标准：每轮注入前 reset_target+flush（reboot_flush() 复位并重初始化 IV），每次 capture 后 scope.io.vglitch_reset()；崩溃检测走 adc.state（触发未落）快速归类 reset（cases/voltage-glitch/02-fault101-voltage-glitch、cases/tooling/143）；2) 独立断电模式——RP2040 glitcher 的 power-cycle-mode：0 无/1 VCC/2 GND/3 双断，失败后按模式断电重启重试（cases/voltage-glitch/113-stm8-interactive-glitcher）；3) USB hub 断电复位——EMFI 打 USB 栈时毛刺常打出 hard fault/栈损毁，用可切换 USB hub 断电循环复位（cases/emfi/247-colinoflynn-trezor-usb-length-check-emfi）；4) 软件 USB 控电——YKUSH3/YKUSH hub 软件控电循环（cases/emfi/244-raelize-gtv-streamer-setresuid-emfi）；5) 断点续扫——CSV 逐次记录 + resume 计数（cases/clock-glitch/284-clockfaultinjector）；ChipCon dump 断点续传（重启动不丢进度，cases/voltage-glitch/42）；6) 台架恢复——rc=33（RESET timeout）时 PSU off/on 恢复流程（cases/voltage-glitch/283）。止损阶梯见 plan/domain-map.md §2.2（连续 3 批全 crash→回标称值人工复位）。",
+  "tags": [
+    "fault-injection",
+    "automation",
+    "methodology"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/02-fault101-voltage-glitch + cases/tooling/143-cw-fault101-intro-bootloader + cases/voltage-glitch/113-stm8-interactive-glitcher + cases/emfi/247-colinoflynn-trezor-usb-length-check-emfi + cases/clock-glitch/284-clockfaultinjector + cases/voltage-glitch/42-cc253x-crowbar + cases/voltage-glitch/283-mc9s12-bdm-glitch",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "kb134",
+  "verified": false,
+  "title": "时钟源匹配问题（晶振必须匹配、内部 RC 不可预测）",
+  "description": "时钟错配是命中率骤降的隐形元凶",
+  "detail": "1) 晶振必须匹配——MC9S12：晶振频率错配=命中分散、成功率极低，晶振还需加稳压电容（cases/voltage-glitch/283-mc9s12-bdm-glitch）；2) 内部 RC 振荡器不可预测——bootl-attacks 78K0：内部 8MHz 振荡器使绝对 offset 因芯片而异，但等价类内共享 offset、可按论文 Table 3 预测跨等价类 offset（cases/secure-boot/114-bootl-attacks-ches2021）；3) RC 偏移的可观测后果——STM32F4 降温后 RC 振荡器偏移导致 UART 输出乱码（cases/voltage-glitch/190-stm32f4-rdp-fpb）；4) 防混叠——Flipper 扫描器支持随机采样以避开与目标周期的混叠（cases/voltage-glitch/118-glitchtrigger-flipper）；5) 时钟毛刺的适用前提——目标依赖外部时钟或可被注入时钟；用内部 RC 的目标时钟毛刺通常不可行（kb102）。实践：扫描前先确认目标时钟源（示波器看 CLK 线/内部 RC 偏频特征），偏移单位换算以实际时钟为准（kb121）。",
+  "tags": [
+    "fault-injection",
+    "clock",
+    "methodology"
+  ],
+  "applicability": [
+    "mc9s12",
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/283-mc9s12-bdm-glitch + cases/secure-boot/114-bootl-attacks-ches2021 + cases/voltage-glitch/190-stm32f4-rdp-fpb + cases/voltage-glitch/118-glitchtrigger-flipper",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,26 @@
+{
+  "id": "kb107",
+  "verified": false,
+  "title": "复位沿锚点触发法（NRST 释放沿 + 固定 offset 扫窗）",
+  "description": "以复位释放沿为时间零点，offset 覆盖 boot 早期保护检查",
+  "detail": "接线：毛刺控制器监视 NRST，检测上升沿→等 offset→打 width 脉冲；每次尝试前重新复位目标。各家族实测 offset 量级（复电/释放沿起算）：STM32F1 RDP1 = 释放后 5–50µs（cases/voltage-glitch/80-0xrafasec-f1-crowbar，8MHz 内部时钟）；LPC1343 ISP = 复位沿+固定偏移（cases/voltage-glitch/112，20ms 复位一轮）；nRF52 = 上电后 ~1029µs 起（cases/voltage-glitch/41，DEC1 80–120ns 宽）或 ~3.665ms（cases/voltage-glitch/65，ext_offset≈366500@100MHz）；RP2350 OTP = 复位后 ~1.75ms（cases/voltage-glitch/197，1.70–1.80ms 粗扫→1.730–1.765ms 细扫，2.5% 命中）；MC9S12 = 复位后前 150 总线时钟≈75µs（cases/voltage-glitch/283）。前提：触发沿要干净——RESET 线去耦电容必须拆掉（cases/voltage-glitch/113）；nRF52 RESET 有两次边沿，先示波器确认有效基准否则 ext_offset 漂移（cases/voltage-glitch/65）。开扫前用示波器在目标引脚验证沿与毛刺波形。",
+  "tags": [
+    "fault-injection",
+    "triggering",
+    "windowing"
+  ],
+  "applicability": [
+    "stm32",
+    "nrf52",
+    "lpc",
+    "rp2350",
+    "mc9s12",
+    "通用 MCU"
+  ],
+  "source": "cases/voltage-glitch/80-0xrafasec-f1-crowbar + cases/voltage-glitch/112-syss-lpc1343-crp + cases/voltage-glitch/41-nrf52-crowbar + cases/voltage-glitch/65-nrf52-cve-27211-linfeng + cases/voltage-glitch/197-rp2350-otp-glitch-kesenheimer + cases/voltage-glitch/283-mc9s12-bdm-glitch + cases/voltage-glitch/113-stm8-interactive-glitcher",
+  "commands": [
+    "python pico-glitcher.py --target /dev/ttyUSB1 --rpico /dev/ttyUSB2 --delay 1700000 1800000 --length 1000 5000",
+    "python -m hwctl glitch-scan --mode voltage --trigger reset-edge --offset 5us:50us:0.1us --width 20ns:200ns:5ns"
+  ],
+  "created_at": "2026-11-15T00:00:00Z"
+}

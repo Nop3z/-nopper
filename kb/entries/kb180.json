@@ -1,0 +1,22 @@
+{
+  "id": "kb180",
+  "verified": false,
+  "title": "TAoFI-FaultLib 结构：ns 参数化、sqlite 入库与 classify",
+  "description": "与 nopper 数据结构最接近的成熟参照实现",
+  "detail": "结构（GPL-3.0，cases/voltage-glitch/07-raelize-taofi）：1) Glitch 类封装 ChipWhisperer HP crowbar（glitch_hp=True、glitch_lp=False、output='enable_only'、clk_src='pll'、num_glitches=1）；目标复位走 scope.io.tio3（reset/reset_wait 等引导 token）；2) 参数：delay/length 以 ns 为单位，arm() 时 delay//(1e9/clkgen_freq)=ext_offset、length→repeat（kb121）；3) 每条实验写 sqlite（id, clock, delay, length, color, response），扫描节奏 get_speed() 统计；4) classify(expected, response) 四色 G/R/M/Y（kb115/kb179）；5) uart_trigger(pattern)：ChipWhisperer UARTTrigger 模块按 UART 字节模式匹配触发（baud 115200、set_pattern_match）；6) TAoFI-Analyzer：uv/pip 安装后 ./taofi-analyzer databases/ 起 Web（127.0.0.1:8000）查着色散点/3D。对 nopper 的意义：五通道数据结构、delay/length 换算、色分类判定可近乎原样映射。",
+  "tags": [
+    "tooling",
+    "taofi",
+    "framework"
+  ],
+  "applicability": [
+    "chipwhisperer",
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/07-raelize-taofi",
+  "commands": [
+    "pip install TAoFI-FaultLib  # 或从 code/TAoFI-FaultLib 安装",
+    "./taofi-analyzer databases/   # Web 查看 127.0.0.1:8000"
+  ],
+  "created_at": "2026-11-15T00:00:00Z"
+}

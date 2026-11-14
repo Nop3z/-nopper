@@ -1,0 +1,17 @@
+{
+  "id": "kb146",
+  "verified": false,
+  "title": "ESP32 V1 家族：Secure Boot + Flash Encryption 毛刺绕过",
+  "description": "V1 的已验证攻击面：crowbar/EMFI/eFuse",
+  "detail": "1) crowbar 绕 SB+FE——Raelize：VDD3P3_CPU+VDD3P3_RTC 双域 crowbar，SPI CS 信号做时序锚，161µs 全窗→73µs 热点→细扫成功率 34.2%；0x41414141 探针判定；shellcode 调 ets_printf 打印未加密 flash 头（cases/secure-boot/27）；2) 双毛格+eFuse——LimitedResults：VDD_CPU+VDD_RTC 双毛格打 BootROM bnei@0x400075B7 绕签名（CVE-2019-15894）；UART 前约 500µs 纯硬件段打 eFuse 读保护→espefuse dump 统计投票（30–50 次）恢复 FEK/SBK，末字节暴力（SBK 用 flash digest 校验）（CVE-2019-17391）（cases/voltage-glitch/196）；3) EMFI 版——同一 BootROM 缺陷用 EMFI 复现（CVE-2020-15048/13629），免侵入只拆屏蔽罩，30×30 表征 165000 次（cases/emfi/241）；4) OTP transfer 硬件窗——复位沿锚 969µs 打 eFuse→shadow 寄存器搬运，位级腐坏可关 SB/读保护位（cases/emfi/242）；5) 官方靶板/框架——TAoFI Training Target（cases/voltage-glitch/07）与 AI-FI 工作流（cases/tooling/245）。",
+  "tags": [
+    "chip-family",
+    "esp32",
+    "secure-boot"
+  ],
+  "applicability": [
+    "esp32"
+  ],
+  "source": "cases/secure-boot/27-raelize-taofi-crowbar-writeup + cases/voltage-glitch/196-limitedresults-esp32-fullsecure + cases/emfi/241-raelize-esp32-emfi-sb-series + cases/emfi/242-raelize-esp32-otp-transfer-emfi + cases/voltage-glitch/07-raelize-taofi + cases/tooling/245-raelize-ai-fi-claude-code-esp32",
+  "created_at": "2026-11-15T00:00:00Z"
+}

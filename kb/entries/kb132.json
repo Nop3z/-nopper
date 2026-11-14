@@ -1,0 +1,16 @@
+{
+  "id": "kb132",
+  "verified": false,
+  "title": "随机扫描 vs 网格扫描策略选择",
+  "description": "什么时候随机滚动、什么时候网格步进",
+  "detail": "随机扫描适用（窗口未知/防混叠/避免系统性偏向）：1) findus 文档——在 delay/length 上下界内随机滚动参数点，大范围随机比顺序扫描更快命中热点区域，配合 Database 可视化热区后再细扫（cases/voltage-glitch/111-findus-pico-glitcher-lib）；2) SySS LPC1343——CLI 给 delay/length 随机区间，无限循环 random.randint（cases/voltage-glitch/112-syss-lpc1343-crp）；3) Flipper 扫描器——线性或随机采样，'随机避开与目标周期的混叠'（cases/voltage-glitch/118-glitchtrigger-flipper）；4) EMFI 功率随机化——每点功率 10–100% 随机（Raelize 表征，cases/emfi/240/241）；5) PowerShorter 复刻——delay/pulse 随机区间扫描（cases/voltage-glitch/191）。网格扫描适用（窗口已窄/需要边界）：fault101 教程 ext_offset 窄窗步进 1（cases/clock-glitch/01）、LPC1114 ext_offset 5180–5185×repeat 7–40（cases/voltage-glitch/04）、RP2350 OTP 细扫 1.730–1.765ms（cases/voltage-glitch/197）。实践：大范围随机→热区网格→边界二分（kb106）。",
+  "tags": [
+    "fault-injection",
+    "strategy"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/111-findus-pico-glitcher-lib + cases/voltage-glitch/112-syss-lpc1343-crp + cases/voltage-glitch/118-glitchtrigger-flipper + cases/emfi/240-raelize-ipq40xx-qsee-emfi + cases/voltage-glitch/191-stm32f103-rdp1-csdn-powershorter + cases/voltage-glitch/04-faultapp1-lpc1114-crp",
+  "created_at": "2026-11-15T00:00:00Z"
+}

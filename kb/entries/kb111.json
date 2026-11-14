@@ -1,0 +1,17 @@
+{
+  "id": "kb111",
+  "verified": false,
+  "title": "目标自置触发（trigger_high 包住敏感代码段）",
+  "description": "在固件敏感循环前后拉 GPIO，把窗口物理外化",
+  "detail": "最可靠的触发形态：固件在敏感代码段（密码比较循环/校验循环/解密段）前调 trigger_high()、后调 trigger_low()，注入器 ext_single 模式在触发沿后延迟 ext_offset 个周期注入。案例：fault101/fault201 全系（trigger_high 包住 5 字节密码比较循环，cases/clock-glitch/01）；CW 官方靶固件 glitch-simple 用 putch('A') 作窗口起点锚点、a==2 判定（cases/tooling/290-cw-firmware-mcu）；SIGPwny 教学把 trigger 指令直接放在 cmp r0,#0 前、bne auth_fail 处，'offset 不知从哪起就在目标程序里自置触发点'（cases/talks/84-sigpwny-fi-lab）；GRIT 靶场 D4 在循环首迭代拉高、末迭代拉低，D4 高电平区间即窗口（cases/other/176-grit-avr-fi-testbed）。黑盒时不可用，但能改固件的评估场景优先此法。注意 round 变量须 volatile，否则编译器优化会吃掉故障点（fault201 Lab 1_1B，cases/clock-glitch/03）。",
+  "tags": [
+    "fault-injection",
+    "triggering",
+    "firmware"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/clock-glitch/01-fault101-clock-glitch + cases/tooling/290-cw-firmware-mcu + cases/talks/84-sigpwny-fi-lab + cases/other/176-grit-avr-fi-testbed + cases/clock-glitch/03-fault201-aes-rsa-dfa",
+  "created_at": "2026-11-15T00:00:00Z"
+}

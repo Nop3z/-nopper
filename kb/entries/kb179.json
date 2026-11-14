@@ -1,0 +1,17 @@
+{
+  "id": "kb179",
+  "verified": false,
+  "title": "五色分类（G/Y/R/M）与 C1-C5 物理观测通道的映射",
+  "description": "判定词表与数据源的两层结构",
+  "detail": "两层结构（cases/_INDEX.md 术语约定）：五色分类=仿真/指令级判定词表（G=精确匹配 PC+寄存器全对、Y=复位串、R=崩溃串、M=其他/打偏；源自 Raelize TAoFI effects.py）；C1-C5=nopper 物理观测通道（C1=UART 响应时延偏移、C2=应答 diff 形态、C3=电流谷值深度/时刻、C4=轨塌陷波形特征、C5=boot 重试次数）。映射实践：1) 判定信号到五色——协议级判定（NACK→ACK/magic）=金、输出 diff 数据泄漏=金+dump 通道、复位=红、崩溃=品红（kb122 谱系）；2) 数据源到 C1-C5——UART 应答走 C1/C2、电流波形走 C3/C4、复位行为走 C5（ cases/tooling/203 的 PicoScope RBM 提供 C3/C4 数据源；cases/voltage-glitch/65 的 DEC1/DEC4 纹理即 C3/C4 观测）；3) ⚠ 色语义冲突——findus 内置 classify 把 R=Success、G=Trigger OK（kb115），与 TAoFI 的 G=success 相反，迁移数据必须先对齐色表（cases/voltage-glitch/111 + 07）。映射关系详见 plan/fw-sim-loop.md §3.3。",
+  "tags": [
+    "tooling",
+    "classification",
+    "observables"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/_INDEX.md 术语约定 + cases/voltage-glitch/07-raelize-taofi + cases/voltage-glitch/111-findus-pico-glitcher-lib + cases/tooling/203-raelize-rapidblockmode + cases/voltage-glitch/65-nrf52-cve-27211-linfeng",
+  "created_at": "2026-11-15T00:00:00Z"
+}

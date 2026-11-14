@@ -1,0 +1,19 @@
+{
+  "id": "kb142",
+  "verified": false,
+  "title": "STM32L4/L5：RDP 绕过论文存在但细节未获取（待人工补采）",
+  "description": "两条独立立案的学术条目，当前只有索引级信息",
+  "detail": "状态：两篇论文的原始页面在本采集环境不可达，四问细节 unknown，未获原文核实——1) STM32L5：Politecnico di Milano 硕士论文 'Bypassing Readout Protection Level 1 on STM32L5 Series'（politesi.polimi.it/handle/10589/227934，连接重置；仅索引摘要确认主题）（cases/voltage-glitch/134-stm32l5-polimi-rdp-thesis）；2) STM32L4：TCHES 论文 'We found a way to extract secrets by circumventing the read-out protection of the STM32L4 microcontroller'（tches.iacr.org download/8972/8550，全站 Anubis PoW 反机器人拦截，按纪律不绕过；索引片段暗示可对固件植入低熵密钥生成/后门类特征；引用了 Obermaier F1 系列 [OSM20]；与 CVE-2019-14236 关联存疑未核实）（cases/voltage-glitch/135-stm32l4-tches-rdp-paper，独立案卷=cases/voltage-glitch/81 论文A/B 段）。行动建议：需人工浏览器访问补采；在此之前 L4/L5 的窗口/触发/判定不得凭空编写。",
+  "tags": [
+    "chip-family",
+    "stm32l4",
+    "stm32l5",
+    "negative-knowledge"
+  ],
+  "applicability": [
+    "stm32l4",
+    "stm32l5"
+  ],
+  "source": "cases/voltage-glitch/134-stm32l5-polimi-rdp-thesis + cases/voltage-glitch/135-stm32l4-tches-rdp-paper + cases/voltage-glitch/81-stm32-rdp-academic-papers",
+  "created_at": "2026-11-15T00:00:00Z"
+}

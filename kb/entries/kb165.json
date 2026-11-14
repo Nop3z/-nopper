@@ -1,0 +1,17 @@
+{
+  "id": "kb165",
+  "verified": false,
+  "title": "防御：认证重试与失败计数（无限重试是缺陷）",
+  "description": "尝试计数器、锁定与它们自身的 FI 暴露",
+  "detail": "要点：1) 无限重试是设计缺陷——BP5 作者明确强调'无限次密码重试本身也是设计缺陷'（其 demo 用真实 IoT U-Boot 密码逻辑，毛格命中即进入控制台）（cases/tooling/253-greybeard-buspirate5-glitch）；2) 尝试计数器可被打——GRIT 把 attempt counter 做成独立模块（M10 attempt counter / M03 lockout），专门供 FI 打穿练习；另有 M15-M18 时钟毛格系'fault-counter defeat'（故障计数器失效）模块——说明计数器/故障标志本身也需要防 FI 设计（cases/other/176-grit-avr-fi-testbed）；3) 状态机防护——WooKey 修复版把 RDP_CHECK 插入每两个状态间（kb161）+ 失败即 mass erase（cases/voltage-glitch/81）；4) SIFA 视角——'故障被检测'不等于'信息不泄露'：双实例冗余 AES 检测故障后仅输出正确密文，攻击者仍可从故障路径的统计分布恢复密钥（SIFA，kb167）（cases/ctf/142-fcsc2022-notsosecure-aes-sifa）。设计建议：计数器用独立存储/多点校验；失败响应应常数化并含随机化。",
+  "tags": [
+    "defense",
+    "auth",
+    "countermeasure"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/tooling/253-greybeard-buspirate5-glitch + cases/other/176-grit-avr-fi-testbed + cases/voltage-glitch/81-stm32-rdp-academic-papers + cases/ctf/142-fcsc2022-notsosecure-aes-sifa",
+  "created_at": "2026-11-15T00:00:00Z"
+}

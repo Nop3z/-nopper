@@ -1,0 +1,17 @@
+{
+  "id": "kb114",
+  "verified": false,
+  "title": "静态分析/反汇编指令计数估窗与符号执行制导",
+  "description": "从代码结构推窗口：NOP 计数、路径约束、敏感位枚举",
+  "detail": "1) 反汇编直算——BH EU 15 经验：从反汇编直算延迟会失败（实际比预期小），给一个范围才成功；讲者给出含管线大小 P_size 与周期 T_* 的启发式公式后 brute force（cases/talks/22-bh-eu15-electrical-glitching）；2) NOP 链定位——RHme3 benzinegate 反汇编找到 set_port_b() 后 50 个 NOP 内（'fifty nops, FI here?'），换算 ext_offset=140 samples@64MHz，在 crash/不 crash 路径间目测调谐（cases/ctf/26-rhme2-rhme3-fi-writeups）；3) 符号执行制导——bootl-attacks 用 Ghidra/IDA 导出+求解器得到以目标指令为锚的路径约束，get_glitch_params 把毛刺粗定位到 (970,980)µs；78K0 内部振荡器不可预测→绝对 offset 因芯片而异，但等价类内共享 offset、可按论文 Table 3 预测跨等价类 offset（cases/secure-boot/114-bootl-attacks-ches2021）；4) 敏感位枚举——Trail of Bits 用 Manticore 逐 bit 翻转 RSA-CRT 签名程序，938 bit 中 45 个（4.8%）泄漏私钥，产出'故障敏感位地图'供宽毛刺挑位簇利用（cases/other/254-trailofbits-rsa-fault-analysis-manticore）。",
+  "tags": [
+    "fault-injection",
+    "windowing",
+    "static-analysis"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/talks/22-bh-eu15-electrical-glitching + cases/ctf/26-rhme2-rhme3-fi-writeups + cases/secure-boot/114-bootl-attacks-ches2021 + cases/other/254-trailofbits-rsa-fault-analysis-manticore",
+  "created_at": "2026-11-15T00:00:00Z"
+}

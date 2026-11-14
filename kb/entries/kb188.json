@@ -1,0 +1,20 @@
+{
+  "id": "kb188",
+  "verified": false,
+  "title": "手持毛格触发器（Flipper GlitchTrigger / Bus Pirate 5 / ESP8266）",
+  "description": "便携工具的扫描-判定闭环能力对比",
+  "detail": "1) Flipper GlitchTrigger FAP（MIT，cases/voltage-glitch/118-glitchtrigger-flipper）：DWT 周期计数关键区忙等≈15.6ns 分辨率；delay×width 2D 网格+dwell 统计；三触发模式（Manual/External GPIO 沿/Repeat 自由运行）；自动命中检测（Pin 成功电平或 UART 监听 pins13/14 成功字符串如 root@）；实时命中率+热图+CSV 导出；注意 3.3V GPIO 不能直接 crowbar 电源轨，需外接 MOSFET。2) Bus Pirate 5 glitch 命令（已进主线固件，cases/tooling/253-greybeard-buspirate5-glitch）：RP2040 PIO 实现，UART 模式下发 '' 后等线回高再精确延时拉低 VCC；成功条件检查+自动重试；ATmega demo 6 连发命中。3) ESP8266 fault-injector（MIT，cases/voltage-glitch/117-esp8266-fault-injector）：µs 级延时+增减步进+中断反馈触发；纯逻辑模块、物理参数由外部电路决定。共性：适合台架外快速摸底，精度与统计能力弱于桌面框架（kb181/182）。",
+  "tags": [
+    "tooling",
+    "portable",
+    "trigger"
+  ],
+  "applicability": [
+    "flipper-zero",
+    "bus-pirate",
+    "esp8266",
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/118-glitchtrigger-flipper + cases/tooling/253-greybeard-buspirate5-glitch + cases/voltage-glitch/117-esp8266-fault-injector",
+  "created_at": "2026-11-15T00:00:00Z"
+}

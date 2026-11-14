@@ -1,0 +1,20 @@
+{
+  "id": "kb109",
+  "verified": false,
+  "title": "事件边沿计数触发（eMMC D0 / MMC 空闲等外部事件计数）",
+  "description": "目标外部信号线上数 N 个边沿后再延迟注入",
+  "detail": "适用于有可观测事件线但无 UART 的目标：1) eMMC D0 边沿计数——Starlink modchip 用 RP2040 PIO 状态机等 eMMC D0 出现 trig_edges 个上升沿，再按 pulse_offset（PIO 周期数）延迟后输出 pulse_width 毛刺（WAIT 0/1 PIN 0 计边沿→JMP Y-- poffset→JMP X-- pwidth，cases/voltage-glitch/40-starlink-fi）；UART 被固件更新熔断后从 UART 触发改为 eMMC D0 触发是现成的触发降级案例（cases/talks/21-defcon30-starlink-secure-boot）；2) MMC 空闲超时——PS Vita 用 ChipWhisperer 等 BootROM 读卡动作的 MMC 流量空闲超时作为触发（cases/voltage-glitch/201-petite-mort-vita-bootrom）；3) 通用判定：所选事件必须与目标操作强相关（边沿数到第 N 个时正好进入校验段），否则 offset 全景都会白扫。参数占位：官方 example.py 用 random.randint(A,B) 占位、靠实验摸索。",
+  "tags": [
+    "fault-injection",
+    "triggering",
+    "pio"
+  ],
+  "applicability": [
+    "cortex-a53",
+    "starlink-soc",
+    "ps-vita",
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/40-starlink-fi + cases/talks/21-defcon30-starlink-secure-boot + cases/voltage-glitch/201-petite-mort-vita-bootrom",
+  "created_at": "2026-11-15T00:00:00Z"
+}

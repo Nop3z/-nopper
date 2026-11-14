@@ -1,0 +1,19 @@
+{
+  "id": "kb159",
+  "verified": false,
+  "title": "OpenTitan/Ibex RISC-V：官方 FI 评估框架与攻击目标",
+  "description": "ot-sca 的参数扫描、三分类与 campaign 清单",
+  "detail": "框架：lowRISC ot-sca（Apache-2.0），ChipWhisperer Husky+ChipShouter（EMFI）+ChipShover XYZ；亦含 Husky 电压毛格与 dummy 干跑 gear（CI 配置即替换）。触发：目标固件在关键操作处发硬件触发脉冲（IO4→Husky IO 触发，rising edge）→Husky 延迟/整形为 ChipShouter 触发。参数：20ns 步进（50MHz clkgen 1 cycle），width=repeat×20ns、delay=ext_offset×20ns；Husky/CS 有固定硬件 latency（kb121）。判定：FISuccess 三分类 SUCCESS/EXPRESPONSE/NORESPONSE 统计百分比入库绘图；demo 模式橙色点=未注入基线。campaign 目标示例（fault_injection/configs/pen.global_fi.*.yaml）：ibex.address_translation（绕地址翻译硬化检查）、unrolled_reg_op_loop_chain（寄存器堆毛格）、otbn.pc（OTBN PC 操纵）、otp_ctrl.data_read（OTP 读取故障）。复现：无硬件先跑 vcc_dummy 配置 demo。（cases/emfi/110-ot-sca-riscv-fi）仿真级补充：Ibex 指令复制案例（cases/tooling/206-glitchgluck-guided-fi）。",
+  "tags": [
+    "chip-family",
+    "opentitan",
+    "ibex",
+    "riscv"
+  ],
+  "applicability": [
+    "opentitan",
+    "ibex"
+  ],
+  "source": "cases/emfi/110-ot-sca-riscv-fi + cases/tooling/206-glitchgluck-guided-fi",
+  "created_at": "2026-11-15T00:00:00Z"
+}

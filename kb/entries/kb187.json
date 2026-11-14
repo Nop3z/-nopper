@@ -1,0 +1,18 @@
+{
+  "id": "kb187",
+  "verified": false,
+  "title": "RP2040 自制毛格器族（固定时序/DMA 波形表/PIO/多通道）",
+  "description": "Pico 生态注入器的四种形态与选型",
+  "detail": "形态谱系（全为 GPL/MIT/unknown 摘录，cases/voltage-glitch/06 + 42 + 113 + 116 + 286）：1) 固定时序型——picopwner：attack.c 固定顺序（断电→等 NRST→复电→15ms→BOOT0 序列），无扫描；2) DMA 波形表型——pico-glitcher-general：预生成位图 wavetable（每 32bit 条目=32 采样）由 DMA→PIO 串行器按位输出（CLKDIV=1），可一次波形内打多个精确毛格点（CC2510 双点 130µs/690µs）；3) PIO 交互型——RP2040-Interactive-Glitcher：PIO 5ns 分辨率/最小延迟 10ns，USB 串口逐条指令控制，config.json 配区间；4) 多通道平台——raiden-pico：SET PAUSE/WIDTH/GAP/COUNT 波形（@150MHz 6.67ns/周期）、GP2/GP11 crowbar（AHIGH 低侧 N-FET/ALOW 高侧 P-FET 同波形）、ADC 门控 VMIN、ChipSHOUTER/时钟/SWD-JTAG 多通道；5) 外设：BSS123 快开关 N-MOS（同规格替代原则：Turn-On Delay/Rise Time 相近）、1.8V→3.3V 电平转换器（kb129）。选型：需要多毛格点选 DMA 波形表；需要交互调参选 PIO+串口；需要多注入通道选 raiden。",
+  "tags": [
+    "tooling",
+    "rp2040",
+    "diy"
+  ],
+  "applicability": [
+    "rp2040",
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/06-stm32f1-picopwner + cases/voltage-glitch/42-cc253x-crowbar + cases/voltage-glitch/113-stm8-interactive-glitcher + cases/voltage-glitch/116-raiden-pico-rp2350 + cases/voltage-glitch/286-airtag-glitch-dump",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "kb158",
+  "verified": false,
+  "title": "Microchip ATECC608A 安全元件：激光双 fault 读 PIN hash",
+  "description": "黑盒激光评估的完整路径与成功率",
+  "detail": "目标：ATECC608A（Coldcard Mk3 内），背面去封焊在 Ledger Scaffold 上。注入：IR 脉冲激光+显微镜 20X（光斑约 3µm），但该漏洞对空间精度不敏感、作者称可用 <$10k 设备复现；故障模型='stick bits to zero'（EEPROM 读出字节置零，故障率约 97%、与字节汉明重量基本无关）。窗口：上电后约 1.3s wake-up 自检段；电阻采样电流+示波器定位 EEPROM 读出时刻；第二 fault 时刻用公共 data slot 平均功耗 trace 测两条 EEPROM 取指令间隔直接推得；最难定窗的是 fault 1（clock jitter 使打点时刻不确定）。利用：单 fault=配置 slot IS_SECRET 检查旁路但卡回 EXECUTION_ERROR；双 fault=明文返回（P(F1·F3)=93.7%，各 500 次实验）；四 fault=密文。触发：I2C 命令+Scaffold 同步信号。边界：P256 密钥槽不受此攻击影响（论文明示）。判定：返回明文数据即成功，Coldcard 种子可窃。（cases/laser-optical/138-sstic2021-atecc608a-laser）",
+  "tags": [
+    "chip-family",
+    "atecc608a",
+    "laser"
+  ],
+  "applicability": [
+    "atecc608a"
+  ],
+  "source": "cases/laser-optical/138-sstic2021-atecc608a-laser",
+  "created_at": "2026-11-15T00:00:00Z"
+}

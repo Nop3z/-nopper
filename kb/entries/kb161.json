@@ -1,0 +1,17 @@
+{
+  "id": "kb161",
+  "verified": false,
+  "title": "防御：双重校验/两遍检查设计",
+  "description": "检查做两遍的成本与残余攻击面",
+  "detail": "设计意图：同一安全检查执行两次，攻击者必须连续命中两次毛格——成功率是单次命中率的平方量级。案例证据：1) STM32F411——读保护检查前加随机延时且检查做两遍，回帖人评价'可绕但远非入门难度'，电源稳定性使连续两次命中困难（cases/voltage-glitch/251-newae-forum-stm32f411-rdp1-fi）；2) ATECC608A——配置 CRC double-check 本可挡住攻击，但攻击者用第二发激光 fault 绕掉 CRC 检查后明文读出（双 fault 仍成功，说明'两遍'若无随机性/不换时刻仍可串联合法绕过，cases/laser-optical/138-sstic2021-atecc608a-laser）；3) WooKey 修复版——把 RDP_CHECK 状态插到 Bootloader 状态机每两个状态之间：绕过需 5 个脉冲（4 个在极少 CPU 周期内）且乱序跳转触发 mass erase；SRAM payload 路线经 VTOR 重定位实验证实 flash 确实不可达（负结果同样有价值，cases/voltage-glitch/81-stm32-rdp-academic-papers 论文C 防御演进 14.4）。设计要点：检查点间要隔够多时钟周期、结果要有独立存储/比较、失败路径要有强副作用。",
+  "tags": [
+    "defense",
+    "countermeasure",
+    "secure-boot"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/251-newae-forum-stm32f411-rdp1-fi + cases/laser-optical/138-sstic2021-atecc608a-laser + cases/voltage-glitch/81-stm32-rdp-academic-papers",
+  "created_at": "2026-11-15T00:00:00Z"
+}

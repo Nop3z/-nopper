@@ -1,0 +1,17 @@
+{
+  "id": "kb160",
+  "verified": false,
+  "title": "Sony PS Vita BootROM：extclkgen 时钟毛格与双毛格变体",
+  "description": "掌机 BootROM 的 ChipWhisperer 脚本族",
+  "detail": "形态：Vita 的时钟输入由 ChipWhisperer extclkgen 供给（VITA_CLK_FREQ），毛格打在该外部时钟上（clock 注入形态）。参数：以 extclkgen 周期为单位的 MIN/MAX_OFFSET × MIN/WIDTH 扫描（OFFSET_STEP/WIDTH_STEP 步进），脚本常量已预置 known working parameters。触发三类变体（6 个脚本=同一攻击的 6 触发）：a) MMC 流量空闲超时（等 BootROM/引导读卡动作，kb109）；b) manual——等 second_loader 完成后手动注入；c) tzpwn——ensō 自动引导进 tzpwn 后由其调用 secure_kernel.enp 加载时注入。双毛格变体（deux）=复位沿第一毛格+大小检查点第二毛格（kb119）。判定：UART 输出（PAYLOAD_TIMEOUT 内毛格成功后的串口数据）；size-check 变体要求 MBR 偏移 0x30/0x34 满足阈值条件（0x34>0xE1 或 <=0xE1）把检查推向溢出/放行。复现：脚本拷入 CW scripting-examples/，python2 运行。（cases/voltage-glitch/201-petite-mort-vita-bootrom）",
+  "tags": [
+    "chip-family",
+    "ps-vita",
+    "clock-glitch"
+  ],
+  "applicability": [
+    "ps-vita"
+  ],
+  "source": "cases/voltage-glitch/201-petite-mort-vita-bootrom",
+  "created_at": "2026-11-15T00:00:00Z"
+}

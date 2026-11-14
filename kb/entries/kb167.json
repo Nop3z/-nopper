@@ -1,0 +1,19 @@
+{
+  "id": "kb167",
+  "verified": false,
+  "title": "防御：SIFA 与掩码结构对 FI 的残余泄露",
+  "description": "故障被检测/无效化后统计分布仍泄露",
+  "detail": "1) SIFA——(Not So) Secure AES 挑战：双实例冗余 AES 比对检测故障、只输出正确密文，但攻击者可精确指定内部状态字节注入故障（≤200 密文预算），故障路径的统计分布偏斜仍可逐字节恢复密钥（Statistically Ineffective Fault Attack，eprint 2022/642）；判定=恢复密钥解出服务器初始消息（cases/ctf/142-fcsc2022-notsosecure-aes-sifa）；2) 掩码方案——torsion masking（PRISM/POKÉ/FESTA 等 SIDH/SQIsign 族）存在专用故障模型与后处理恢复（cases/dfa/208-torsion-masking-faults）；3) 哈希签名——SPHINCS+ 的故障对策设计与实测验证有官方 artifact（理论 Table 2-13 + ChipWhisperer 实测，cases/dfa/200-sphincsplus-fa-tches23）；4) 实用启示：冗余/检测结构必须假设'检测信号本身可被绕过'且故障路径数据可被统计利用；评估时把'故障被抑制'的实验当有效实验纳入分析。",
+  "tags": [
+    "defense",
+    "sifa",
+    "crypto"
+  ],
+  "applicability": [
+    "aes",
+    "后量子密码",
+    "通用"
+  ],
+  "source": "cases/ctf/142-fcsc2022-notsosecure-aes-sifa + cases/dfa/208-torsion-masking-faults + cases/dfa/200-sphincsplus-fa-tches23",
+  "created_at": "2026-11-15T00:00:00Z"
+}

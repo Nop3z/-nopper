@@ -1,0 +1,17 @@
+{
+  "id": "kb197",
+  "verified": false,
+  "title": "负知识：硬件损坏教训与安全红线",
+  "description": "烧管子、打挂芯片、忘断电容组的实录",
+  "detail": "实录：1) FET 烧毁——BP5 作者烧了两只 FET，原因是毛格'on'太久；对策=FET 源极串小电阻控制脉宽（cases/tooling/253-greybeard-buspirate5-glitch）；2) 打挂芯片——nRF52 复现中 repeat 过重（过大）会把芯片打挂；repeat 1–100 扫描需从轻到重（cases/voltage-glitch/65-nrf52-cve-27211-linfeng）；3) 电容组未断开——Starlink UT 完整启动需要两组电容，但毛格注入期间电容组必须断开，否则达不到预期故障效果；modchip 用两片 MOSFET 专门管电容组（cases/voltage-glitch/40-starlink-fi）；4) EMFI 能量——高能量直接打穿栅氧即报废芯片（kb105 红线：每点先低能量试起逐档升压）；CW520 触发口绝对最大 −0.5~6.5V；勿用 CW Measure 口观测 CS 脉冲（cases/emfi/145 + kb105）；5) PicoEMP 高压——塑料护罩为强制安全件（cases/emfi/44-picoemp）；6) 供电保护——RK6006 OVP 上限预设（3.0V）、PSU 限流 10mA（kb192）；7) 物理止损阶梯（plan/domain-map.md §2.2）：连续 3 批全 crash→回标称值人工复位；台架通信失联>60s→冻结操作员。",
+  "tags": [
+    "negative-knowledge",
+    "safety",
+    "hardware"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/tooling/253-greybeard-buspirate5-glitch + cases/voltage-glitch/65-nrf52-cve-27211-linfeng + cases/voltage-glitch/40-starlink-fi + cases/emfi/145-newae-forum-chipshouter-cw-trigger + cases/emfi/44-picoemp",
+  "created_at": "2026-11-15T00:00:00Z"
+}

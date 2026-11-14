@@ -1,0 +1,17 @@
+{
+  "id": "kb137",
+  "verified": false,
+  "title": "虚拟化/接口级故障注入方法论（上硬件前用 VM/仿真器跑通攻击）",
+  "description": "FaultedMachine/Rainbow/RTL 插桩的廉价迭代回路",
+  "detail": "价值：物理毛刺迭代以小时/天计，仿真迭代以秒计——先用接口级故障把'要打哪条指令'定下来，再到物理上找窗。形态：1) VM 指令跳过——Hackropole FaultedMachine 在指定指令序号处把该指令当 NOP（或 finalize_move 前随机化目的寄存器），本地 runCode(debug=True) 逐条打印机器状态离线枚举候选跳过点，与物理 offset 扫描同构（cases/ctf/85、140、141、291-294）；2) 指令级仿真——Rainbow 在 Unicorn 指令钩子上按脚本对任意指令/寄存器施故障（skip/reg 翻转），先 trace 后选点（cases/other/209-rainbow-fi-simulator）；3) RTL 插桩——IBM Chiffre 用 Chisel 注解+FIRRTL pass 自动给设计插 StuckAt/LFSR/Cycle 三原语注入器，运行时 scan chain 配置（cases/riscv-fi/166-ibm-chiffre）；4) 引导式——GlitchGlück 在 RTL 仿真中记录状态生成 DSTG（动态状态转移图），用图搜索定位能把执行引向特定软件错误状态的注入点（溢出/指令复制/PIN 绕过）（cases/tooling/206-glitchgluck-guided-fi）；5) 开发流集成——rust_fi assert 宏+addr2line 把故障指令映射回源码行（cases/other/213-fi-checks-pin-verification）。",
+  "tags": [
+    "fault-injection",
+    "simulation",
+    "methodology"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/ctf/85-fcsc2026-bellcore + cases/other/209-rainbow-fi-simulator + cases/riscv-fi/166-ibm-chiffre + cases/tooling/206-glitchgluck-guided-fi + cases/other/213-fi-checks-pin-verification + cases/other/254-trailofbits-rsa-fault-analysis-manticore",
+  "created_at": "2026-11-15T00:00:00Z"
+}

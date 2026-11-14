@@ -1,0 +1,17 @@
+{
+  "id": "kb192",
+  "verified": false,
+  "title": "台架外围：可编程电源、自动日志与断点续扫",
+  "description": "长时间无人值守扫描的配套件",
+  "detail": "1) 可编程电源——RK6006/RD6006：findus --power 参数接入（ext_power_voltage=3.3），AI-FI 案例用 RK6006 OVP 上限 3.0V 做硬件保护（cases/voltage-glitch/111 + cases/tooling/245）；Keysight E3631A 经 NI GPIB 自动扫（MC9S12 案例，限流 10mA）（cases/voltage-glitch/283）；Envox BB3 双通道 toggle 作触发源（cases/tooling/192-glitchy-nocode-glitcher）；2) 日志与热图——Flipper hits.csv（delay/width/pulses/时间戳）+实时热图（kb188）；ClockFaultInjector CSV 逐次记录+resume 断点续扫（cases/clock-glitch/284-clockfaultinjector）；raiden glitch_results*.csv+glitch_heatmap.py（kb187）；findus Database+本地 web（kb181）；ChipCon dump 断点续传（kb131）；3) GUI 编排——Glitchy 无代码界面（chipwhisperer 5.6.1 钉版本，多触发源 GUI，unknown 许可）（cases/tooling/192）；ChipWhisperer Studio 桌面应用（Apache-2.0）：glitch sweep/CPA/LA 解码/MCP server 供 AI agent 调用（cases/tooling/288-cw-studio）；4) 与 nopper 对接：这些日志格式是 scan_campaign CSV 台账（.sapper/scan/<scan_id>.csv）的现成上游（plan/domain-map.md §5）。",
+  "tags": [
+    "tooling",
+    "bench",
+    "logging"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/111-findus-pico-glitcher-lib + cases/tooling/245-raelize-ai-fi-claude-code-esp32 + cases/voltage-glitch/283-mc9s12-bdm-glitch + cases/clock-glitch/284-clockfaultinjector + cases/tooling/192-glitchy-nocode-glitcher + cases/tooling/288-cw-studio",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "kb194",
+  "verified": false,
+  "title": "负知识：论文/受控源未获原文的案例清单（待人工补采）",
+  "description": "四问 unknown 的学术与厂商条目，不得凭空编写",
+  "detail": "这些案例只有索引级信息，复现细节需人工浏览器取原文（_MANUAL-REVIEW.md 全部停手未绕过）：1) STM32L5 硕士论文（politesi 连接重置）与 STM32L4 TCHES 论文（Anubis PoW 全站拦截）（cases/voltage-glitch/134 + 135 + 81 论文A/B）；2) Zynq-7000 RSA 绕过（artifact 仅 README，细节在 WOOT'24 PDF 未取）（cases/secure-boot/207）；3) SSTIC 2020 论文 PDF 已全文提取笔记但三篇中两篇不可达（cases/voltage-glitch/81 论文C 部分可采）；4) BAM BAM 系列 ESCAR2020/FDTC PDF 被 Cloudflare 挑战未取（cases/emfi/194 + 248）；5) BBI（CARDIS 2020）无直链（cases/other/249）；6) 智能卡高温注入 PDF 反爬 418（cases/other/137-smartcard-temperature-fi）；7) Tegra X2（arXiv 摘要已抓，正文细节需 PDF）（cases/voltage-glitch/62）；8) Fox-IT MediaTek BootROM（WAF 403）（cases/voltage-glitch/67）；9) ESP32-V3（ePrint 摘要页已抓，PDF 需人工）（cases/emfi/61）。纪律：这些目标在补采前不产出参数级 kb 内容。",
+  "tags": [
+    "negative-knowledge",
+    "manual-review"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/134-stm32l5-polimi-rdp-thesis + cases/voltage-glitch/135-stm32l4-tches-rdp-paper + cases/secure-boot/207-zynq7000-rsa-bypass + cases/emfi/194-emfi-automotive-safety-fdtc21 + cases/other/249-colinoflynn-bbi-wlcsp-cardis2020 + cases/other/137-smartcard-temperature-fi + cases/voltage-glitch/62-tegrax2-secureboot + cases/voltage-glitch/67-foxit-mediatek-bootrom + cases/emfi/61-esp32v3-firmware-encryption",
+  "created_at": "2026-11-15T00:00:00Z"
+}

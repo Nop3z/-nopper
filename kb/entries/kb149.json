@@ -1,0 +1,17 @@
+{
+  "id": "kb149",
+  "verified": false,
+  "title": "RP2350 家族：Secure Boot/OTP 的电压、激光与双毛格攻击面",
+  "description": "带 glitch detectors 的靶：四条已验证/记录路线",
+  "detail": "1) 电压 OTP——Kesenheimer：割断 USB_OTP_VDD 走线+3.3V 施加；复位沿自环触发；delay 1.70–1.80ms×length 粗细扫（细扫 1.730–1.765ms×4300–550），2.5% 命中，'c0ffee' 判据；可篡改 OTP 配置（cases/voltage-glitch/197-rp2350-otp-glitch-kesenheimer）；2) 激光——courk：预算级 IR 激光+Glasgow 控制+binary-patcher 双 QSPI 镜像定窗；单脉冲绕 Secure Boot；三故障场景=指令跳过/寄存器破坏/指令变异（cases/laser-optical/63-rp2350-laser-courk + cases/laser-optical/287-rp2350-lfi-glasgow）；3) 光子发射定位+激光——Ledger Donjon：PEM 差分定位 DEBUGEN 两 bit 存储位置（980nm ≈1.2W/100ns/50x，20x 物镜不可复现），逐脉冲 SWD 反馈校准，rescue reset 在软锁收紧前读 OTP secret（cases/laser-optical/96-rp2350-donjon-photon-emission）；4) 39C3 双毛格——BootROM 期 double glitch 直读 OTP；该芯片自带 glitch detectors+redundancy co-processor 仍被绕过（cases/talks/130-rp2350-39c3-double-glitch）；5) findus/raiden 均含 rp2350 项目（cases/voltage-glitch/111、116）。防护讨论见 kb163。",
+  "tags": [
+    "chip-family",
+    "rp2350",
+    "otp"
+  ],
+  "applicability": [
+    "rp2350"
+  ],
+  "source": "cases/voltage-glitch/197-rp2350-otp-glitch-kesenheimer + cases/laser-optical/63-rp2350-laser-courk + cases/laser-optical/287-rp2350-lfi-glasgow + cases/laser-optical/96-rp2350-donjon-photon-emission + cases/talks/130-rp2350-39c3-double-glitch",
+  "created_at": "2026-11-15T00:00:00Z"
+}

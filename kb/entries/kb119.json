@@ -1,0 +1,21 @@
+{
+  "id": "kb119",
+  "verified": false,
+  "title": "双毛刺/多脉冲串联注入",
+  "description": "第一发改变状态、第二发打关键点；profiling 先定位第一发",
+  "detail": "流程：先单独 profiling 第一发毛刺（offset/width/voltage 三维扫描，n≈2000/点）定位其效果，再在已定位点执行双毛刺。案例与参数：1) STM8 读保护——option bytes 四态（ROP×BL）决定需要 1 或 2 个毛刺；state_1_glitch profiling 后 state_2_glitch(state_1_offs, state_2_offs)；毛刺电压/宽度受温度、晶圆批次影响，先在训练芯片校准（cases/secure-boot/114-bootl-attacks-ches2021）；2) PS Vita——deux 脚本=复位沿第一毛刺+大小检查点第二毛刺（cases/voltage-glitch/201-petite-mort-vita-bootrom）；3) RP2350——bootrom 执行期 double glitch 直读 OTP（cases/talks/130-rp2350-39c3-double-glitch）；4) STM32F439——第一段 RDP2→1 降级（成功率 1.5%）+第二段软件校验绕过（≈10%），全链 0.1%，反复迭代覆盖全固件；逆向发现编译后分支顺序使双故障可简化为单故障（cases/voltage-glitch/81-stm32-rdp-academic-papers 论文C）；5) Starlink——双脉冲：一发打核心电压、一发控电容组（cases/voltage-glitch/40-starlink-fi）；6) ATECC608A——单命令执行期内 2 发激光 fault（绕 IS_SECRET 检查+绕 CRC double-check）明文读出（cases/laser-optical/138-sstic2021-atecc608a-laser）。",
+  "tags": [
+    "fault-injection",
+    "multi-glitch",
+    "methodology"
+  ],
+  "applicability": [
+    "stm8",
+    "stm32",
+    "rp2350",
+    "atecc608a",
+    "通用"
+  ],
+  "source": "cases/secure-boot/114-bootl-attacks-ches2021 + cases/voltage-glitch/201-petite-mort-vita-bootrom + cases/talks/130-rp2350-39c3-double-glitch + cases/voltage-glitch/81-stm32-rdp-academic-papers + cases/voltage-glitch/40-starlink-fi + cases/laser-optical/138-sstic2021-atecc608a-laser",
+  "created_at": "2026-11-15T00:00:00Z"
+}

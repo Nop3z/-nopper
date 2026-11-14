@@ -1,0 +1,18 @@
+{
+  "id": "kb186",
+  "verified": false,
+  "title": "GIAnT / Ztex FPGA 毛格器接口",
+  "description": "Riscure 开源硬件的触发源与毛格原语",
+  "detail": "接口（cases/voltage-glitch/41-nrf52-crowbar + cases/secure-boot/114-bootl-attacks-ches2021）：1) 故障通道 T1（触发时短到地）；VCC 可由 GIAnT DAC 输出供电（3.3V），DAC 上电事件直接配置为触发源（FI_TRIGGER_CONTROL_DAC_POWER：关 DAC=下电、开 DAC=复位+触发）；外部触发 FI_TRIGGER_CONTROL_EXT1（CC Debugger 拉低 RESET_N 下降沿，cc-tool 通信过程即窗口）；2) Python 移植版 giant-python（bootl-attacks 附）：set_voltages(Vf,Vdd,Voff)+add_pulse(width,offset) 毛格原语；3) 实战画像：nRF52 最优 width 80–120ns、offset 1027–1100µs（kb145）；CC2541 失败对照（kb154）；4) openocd 配套：tcl/target/nrf52.cfg 放脚本目录，dump_image 判定。预算替代：任何 5ns 级 Pico 方案（kb187）可覆盖同类窗口。",
+  "tags": [
+    "tooling",
+    "giant",
+    "fpga"
+  ],
+  "applicability": [
+    "giant",
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/41-nrf52-crowbar + cases/secure-boot/114-bootl-attacks-ches2021",
+  "created_at": "2026-11-15T00:00:00Z"
+}

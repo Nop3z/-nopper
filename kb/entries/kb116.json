@@ -1,0 +1,17 @@
+{
+  "id": "kb116",
+  "verified": false,
+  "title": "首成功停扫、重复尝试与成功率统计",
+  "description": "单点 tries、成功即停、邻域复现定边界",
+  "detail": "规则：1) 每点多次尝试（fault101 tries 参数；crash 后 reset 再试）——单发命中是小概率事件，判定需要统计而非单点（cases/voltage-glitch/02-fault101-voltage-glitch）；2) 首个 success 立即停扫记点（防止后续 crash 毁掉证据），再邻域细扫；3) 复现统计——细扫后实测成功率：ESP32 crowbar 34.2%（约每 3 次成功 1 次，学员曾达近 100%，cases/secure-boot/27）、RP2350 OTP 2.5%（约 50 次一发，cases/voltage-glitch/197）、STM32F1 crowbar 命中率预期 1/500–1/5000 必须自动化（cases/voltage-glitch/80）、Bus Pirate ATmega demo 6 连发即命中（cases/tooling/253-greybeard-buspirate5-glitch）、raiden-pico 的 BOR 制导法可'第一次就成功'（cases/voltage-glitch/116-raiden-pico-rp2350）。sapper 台账规则：observed（单点成功）→ confirmed（attempts≥10 且 success_rate≥30%）→ rejected（偶发/漂移），与 plan/domain-map.md §5 一致。",
+  "tags": [
+    "fault-injection",
+    "statistics",
+    "methodology"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/02-fault101-voltage-glitch + cases/secure-boot/27-raelize-taofi-crowbar-writeup + cases/voltage-glitch/197-rp2350-otp-glitch-kesenheimer + cases/voltage-glitch/80-0xrafasec-f1-crowbar + cases/voltage-glitch/116-raiden-pico-rp2350 + cases/tooling/253-greybeard-buspirate5-glitch",
+  "created_at": "2026-11-15T00:00:00Z"
+}

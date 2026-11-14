@@ -1,0 +1,17 @@
+{
+  "id": "kb199",
+  "verified": false,
+  "title": "负知识：演讲/视频类案例四问缺失清单",
+  "description": "仅摘要级信息的 talks 条目，待人工观看补齐",
+  "detail": "这些条目只有官方简介/议题页级信息，四问（注入点/窗口/触发/判定）细节需人工观看录像或取字幕（按纪律不下载视频）：1) 通用 secure boot FI——SHA2017 tieknimmers（media.ccc.de SHA2017-143；字幕入口 418 未取）（cases/talks/170-sha2017-secureboot-fi）；2) GHz 多核 SoC EMFI 频率-有效性实验（cases/talks/171-mch2022-multicore-soc-emfi）；3) 预算 FI 先声（Camp2015，30 欧级 SCA+FI）（cases/talks/172-camp2015-cheap-hw-attacks）；4) 预算激光三用途（39C3 Fuse Hardware 轨）（cases/laser-optical/173-39c3-budget-laser-fi）；5) DEF CON 23/Teardown 2024/RPi3B+/Android 手机演示（cases/talks/20 + 23 + 24 + 25）；6) Riscure HITB 2017（cases/talks/68）、Remoticon 2021（cases/talks/69）、Capacitars（字幕目录未核验）（cases/talks/70-capacitars-mccardell）、iPhone15 JTAG（cases/talks/71）、Chipolo FI→RCE 链（cases/talks/160-38c3-chipolo-fi-rce）；7) Nullcon 防御对策与 BSides FI 入门的操作细节（cases/talks/132 + 133）；8) KERNELFAULT 现场演示细节（cases/talks/131）。处理：观众可取的官方字幕（DEF CON srt、c3subtitles）是补四问的低成本来源。",
+  "tags": [
+    "negative-knowledge",
+    "talks",
+    "manual-review"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/talks/170-sha2017-secureboot-fi + cases/talks/171-mch2022-multicore-soc-emfi + cases/talks/172-camp2015-cheap-hw-attacks + cases/laser-optical/173-39c3-budget-laser-fi + cases/talks/20-defcon23-dont-whisper-my-chips + cases/talks/23-teardown2024-fi-intro + cases/talks/24-cw-rpi3b-vcc-glitch + cases/talks/25-cw-android-glitch + cases/talks/68-riscure-hitb2017-secureboot + cases/talks/69-remoticon-2021-oflynn + cases/talks/70-capacitars-mccardell + cases/talks/71-ace-up-sleeve-iphone15 + cases/talks/160-38c3-chipolo-fi-rce + cases/talks/132-nullcon2025-glitch-sw-countermeasures + cases/talks/133-bsideslondon2024-fi-intro + cases/talks/131-kernelfault-hardweario-2017",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,19 @@
+{
+  "id": "kb129",
+  "verified": false,
+  "title": "触发信号调理（电平转换、阈值校准、共地）",
+  "description": "异电压域信号接入触发器前的必要调理",
+  "detail": "要点：1) 电平转换——AirTag 1.8V 供电域信号进 3.3V 逻辑：自制分压器（电位器调 CMOS 逻辑阈值≈1.09V）以减小'触发时刻漂移'；注意极性（AirTag 断电时读 3.3V、上电读 0.0V）（cases/voltage-glitch/286-airtag-glitch-dump）；MC9S12 的 5V 域 BKGD 线经单向电平转换 3.3V→5V 进 Teensy（cases/voltage-glitch/283-mc9s12-bdm-glitch）；2) 沿锐化——触发线去耦电容必须拆（kb127）；3) 共地——毛刺源与目标必须共地，不共地会导致毛刺无效或打挂芯片（nRF52 复现作者强调，cases/voltage-glitch/65-nrf52-cve-27211-linfeng）；4) 触发线复用——同一物理信号可多路同源：TIO1-4 分别接 UART TX/RESET/PROGRAM/SPI CS 供自动实验编排（cases/tooling/245-raelize-ai-fi-claude-code-esp32）；5) 电压域毛刺（ADC 门控）——raiden-pico 用 ADC 监测电源电压到阈值才释放毛刺（VMIN 深度可控，大电容轨适用）（cases/voltage-glitch/116-raiden-pico-rp2350）。",
+  "tags": [
+    "fault-injection",
+    "triggering",
+    "hardware"
+  ],
+  "applicability": [
+    "nrf52",
+    "mc9s12",
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/286-airtag-glitch-dump + cases/voltage-glitch/283-mc9s12-bdm-glitch + cases/voltage-glitch/65-nrf52-cve-27211-linfeng + cases/tooling/245-raelize-ai-fi-claude-code-esp32 + cases/voltage-glitch/116-raiden-pico-rp2350",
+  "created_at": "2026-11-15T00:00:00Z"
+}

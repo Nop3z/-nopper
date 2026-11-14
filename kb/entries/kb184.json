@@ -1,0 +1,18 @@
+{
+  "id": "kb184",
+  "verified": false,
+  "title": "ChipSHOUTER 触发联动与规格红线",
+  "description": "CW glitch 口驱动 CS 的接法与电气参数",
+  "detail": "联动（NewAE 论坛官方确认，cases/emfi/145-newae-forum-chipshouter-cw-trigger）：1) 接线：ChipWhisperer-Lite GLITCH 口→SMB 转 SMA→ChipSHOUTER 硬件触发口；CW 设置 output='glitch_only'+glitch_lp=True 的数字毛格脉冲作外触发；CS 设置 hwtrig_term=0（1.8k 高阻档）、active-low、pulse.width=80、repeat=1；2) 窗口仍由 CW 侧 width/offset/ext_offset 控制（与 fault201 流程同）；CS 与靶板共地；3) 规格：硬件触发阈值 2V（绝对最大 −0.5~6.5V）、阻抗 50Ω/1.8kΩ 可切、触发→脉冲延迟 75ns（抖动 150ps）、脉宽抖动 800ps（300–500V 时 220ps）、basic 脉宽 80–960ns（80ns 分辨率）/pattern 模式 20.83ns 步进；4) 红线：勿用 CW 'Measure' 口观测 CS 脉冲（大电压尖峰会伤放大器）；观测走示波器+CW520 自带 VOUT BNC 监视口（20x 衰减、±25V 到 1MΩ‖10-25pF）；5) 生态：CW322 自触发靶（cases/emfi/175）、Ballistic Gel 校准（cases/emfi/43）。",
+  "tags": [
+    "tooling",
+    "emfi",
+    "chipshouter"
+  ],
+  "applicability": [
+    "chipshouter",
+    "chipwhisperer"
+  ],
+  "source": "cases/emfi/145-newae-forum-chipshouter-cw-trigger + cases/emfi/43-chipshouter-examples + cases/emfi/175-rtfm-cw322-simple-emfi-target",
+  "created_at": "2026-11-15T00:00:00Z"
+}

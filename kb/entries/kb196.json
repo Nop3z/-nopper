@@ -1,0 +1,16 @@
+{
+  "id": "kb196",
+  "verified": false,
+  "title": "负知识：假命中、参数漂移与误判陷阱",
+  "description": "看似成功实则未绕过——验证不足的代价",
+  "detail": "1) 假命中——ChipWhisperer 官方 bootloader lab 强调会有'看似成功实则未绕过'的响应（无 error 码但 MAC 未真绕过）；对策=收 ≥10/≥100 条绕过轨迹，ResyncSAD/DTW 对齐后用 CPA 恢复轮密钥→逆扩展出主密钥，以密钥正确性为终判（cases/tooling/143-cw-fault101-intro-bootloader）；2) 参数/工具语义漂移——repeat 语义工具间分歧（连续 N 发 vs N 周期宽度），用前核文档（kb120，cases/voltage-glitch/250）；Faultier 单位=5ns 步进（kb121）；PowerShorter delay/pulse 设备内部单位 unknown（kb174）；CW-Lite 百分比单位 vs Husky ns 单位不可直迁（kb175）；3) 触发基准漂移——nRF52 RESET 有两次边沿，未确认基准则 ext_offset 系统性漂移（cases/voltage-glitch/65）；MC9S12 错晶振=命中分散成功率极低（cases/voltage-glitch/283）；4) 判定混淆——findus 色表 R=Success 与 TAoFI G=success 相反（kb179）；GRIT 'b' 关反向判定（故障当成功信号，需读题）（cases/talks/84）；5) 环境漂移——温度/批次/数月临界区漂移（kb133），跨日复现失败先查环境再查参数。",
+  "tags": [
+    "negative-knowledge",
+    "pitfalls"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/tooling/143-cw-fault101-intro-bootloader + cases/voltage-glitch/250-newae-forum-hwaes-voltage-dfa + cases/voltage-glitch/65-nrf52-cve-27211-linfeng + cases/voltage-glitch/283-mc9s12-bdm-glitch + cases/voltage-glitch/111-findus-pico-glitcher-lib + cases/talks/84-sigpwny-fi-lab",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,22 @@
+{
+  "id": "kb105",
+  "verified": false,
+  "title": "EMFI 探针选点与台架操作纪律",
+  "description": "电磁注入的定位流程与物理安全红线",
+  "detail": "定位：1) 显微镜/红外下确定 die 上目标模块位置，换算 XYZ 台坐标（标定：先粗栅格 500μm 步进，成功敏感区再 50μm 细扫）；2) 探头选择：大 coil 覆盖广但选择性差，微 probe 选择性高但能量要求大；3) 触发对齐：用 scope.trigger 同步（ChipSHOUTER 支持 pattern/repeat）；4) 每点先低能量试起，逐档升压——高能量直接打穿栅氧即报废芯片。红线：a) 带电插拔探头；b) 操作员手改脉冲电压上限（只在 hwctl 配置里，由功耗工程师设定）；c) 未记录 coil/高度/坐标的 success（不可复现=台账 rejected）。案例佐证：Raelize 表征流程（cases/emfi/240-raelize-ipq40xx-qsee-emfi：2 万次全表面扫描分色定热点）与 NewAE 台架生态（cases/emfi/214-chipshover-xyz、cases/emfi/285-arrow-emfi-probes）。",
+  "commands": [
+    "python -m hwctl emfi-raster --x 0:5000:250 --y 0:5000:250 --z 200 --voltage start=low step=ramp",
+    "python -m hwctl emfi-fire --x 1200 --y 800 --voltage 3.0 --width 100ns --delay 12ms"
+  ],
+  "tags": [
+    "fault-injection",
+    "emfi",
+    "safety"
+  ],
+  "applicability": [
+    "ChipSHOUTER",
+    "自研 EMFI 台架"
+  ],
+  "source": "plan/domain-map.md §4 示例设计 + cases/emfi/240-raelize-ipq40xx-qsee-emfi + cases/emfi/241-raelize-esp32-emfi-sb-series + cases/emfi/214-chipshover-xyz + cases/emfi/285-arrow-emfi-probes",
+  "created_at": "2026-11-15T00:00:00Z"
+}

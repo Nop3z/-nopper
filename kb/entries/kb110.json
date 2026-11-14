@@ -1,0 +1,19 @@
+{
+  "id": "kb110",
+  "verified": false,
+  "title": "电源周期触发法（断电-复电沿即零点）",
+  "description": "无 UART/GPIO 触发线时，用供电周期自身做触发与复位",
+  "detail": "模式：每轮断电（50ms 量级）→复电→固定 delay 后注入毛刺→判定→循环。实测参数起点：nRF52（ESP32 毛刺器）：复电后 delay 扫 2000–30000µs 步进 1µs，width 0–30µs 步进 1µs，每点闭环试 SWD 判定（cases/voltage-glitch/08-nrf52-approprotect）；GIAnT 把 DAC 上电事件直接配置为 FI 触发源（FI_TRIGGER_CONTROL_DAC_POWER，关 DAC=下电、开 DAC=复位+触发，cases/voltage-glitch/41-nrf52-crowbar）；AirTag 用 1.8V→3.3V 电平转换器监视 NRF_VDD 上电沿对齐（cases/voltage-glitch/286-airtag-glitch-dump）；MC9S12 用 USBDM 控 RESET、Teensy 监视沿后内部定时（cases/voltage-glitch/283）。陷阱：nRF52/nRF52840 的 RESET 线有两次边沿（断电/上电），先示波器确认有效基准，否则 ext_offset 系统性漂移（cases/voltage-glitch/65-nrf52-cve-27211-linfeng）。整板断电-复电也是 STM32F4 路线的注入动作本身（cases/voltage-glitch/190-stm32f4-rdp-fpb）。",
+  "tags": [
+    "fault-injection",
+    "triggering",
+    "power"
+  ],
+  "applicability": [
+    "nrf52",
+    "stm32f4",
+    "通用 MCU"
+  ],
+  "source": "cases/voltage-glitch/08-nrf52-approprotect + cases/voltage-glitch/41-nrf52-crowbar + cases/voltage-glitch/286-airtag-glitch-dump + cases/voltage-glitch/65-nrf52-cve-27211-linfeng + cases/voltage-glitch/283-mc9s12-bdm-glitch + cases/voltage-glitch/190-stm32f4-rdp-fpb",
+  "created_at": "2026-11-15T00:00:00Z"
+}

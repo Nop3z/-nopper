@@ -1,0 +1,20 @@
+{
+  "id": "kb123",
+  "verified": false,
+  "title": "反常探针/加法雪橇表征法（打不进真目标先用测试负载摸底）",
+  "description": "用无害测试负载把芯片毛刺敏感性先测出来",
+  "detail": "用途：在动真目标前，用无安全后果的测试负载测量'这块芯片/这个位置多容易被打坏'，得到空间/时序热点。方法：1) 0x41414141 探针——ESP32 payload 在 SRAM 铺 1000 个 0x41414141 指针，命中时 PC 被装入非法地址，串口出现 'Fatal exception (0): IllegalInstruction epc1=0x41414141' 即确认可打（cases/secure-boot/27-raelize-taofi-crowbar-writeup）；2) add-sled——测试代码给 a0-a9 铺特征值→add r0,#1 ×10000→GPIO 拉高拉低围出攻击窗→串口回读计数值，计数值≠10000 即成功；Raelize 用它做 2 万次全表面表征（cases/emfi/240-raelize-ipq40xx-qsee-emfi）与 30×30 网格 165000 次表征（cases/emfi/241-raelize-esp32-emfi-sb-series）；3) 死循环表征——adb shell 无 GPIO 可触发时把表征代码跑成死循环、毛刺器异步乱打、死循环写结果文件经 adb 轮询取回（cases/emfi/244-raelize-gtv-streamer-setresuid-emfi）；4) 测试指令验证——ChipCon 调试协议发 'XOR 0x42; INC A'，期望累加器按序变 0x42/0x01 以验证毛刺命中位置（cases/voltage-glitch/42-cc253x-crowbar）。",
+  "tags": [
+    "fault-injection",
+    "characterization",
+    "methodology"
+  ],
+  "applicability": [
+    "esp32",
+    "qualcomm-ipq",
+    "mediatek",
+    "通用"
+  ],
+  "source": "cases/secure-boot/27-raelize-taofi-crowbar-writeup + cases/emfi/240-raelize-ipq40xx-qsee-emfi + cases/emfi/241-raelize-esp32-emfi-sb-series + cases/emfi/244-raelize-gtv-streamer-setresuid-emfi + cases/voltage-glitch/42-cc253x-crowbar",
+  "created_at": "2026-11-15T00:00:00Z"
+}

@@ -1,0 +1,20 @@
+{
+  "id": "kb143",
+  "verified": false,
+  "title": "STM32G0/F0/C0：TraceRip 非毛刺提取路线（RDP1 下 SWD 只能读 SRAM）",
+  "description": "延时步进+寄存器现场重建恢复 flash 的家族适用性",
+  "detail": "前提：RDP1 屏蔽 flash 总线（bus access→HardFault+锁 flash IF），但 SRAM、外设、内核寄存器仍可经 SWD 读写；F1/F0/F4 类毛刺路径在 G0 上不可用或未成功。方法：每轮断电→复位上电→配置调试块→释放复位→精确 delay→发起一次 bus read 制造 HardFault 冻结 CPU→读全部核心寄存器+部分 SRAM→delay 递增（delay 对地址不单调：bootloader 自检/app 检查处有离群点）。量级：boot 期 CRC≈600ms、每次捕获≈50ms、单次完整捕获约 2.5 天（50h 等待+8h 开销），需 3–5 次捕获补洞。判定=寄存器语义重建（r0=CRC 累加器、r5=poly 0x1021、r2=flash 地址、r4=剩余位数）+ CRC 位变换链自洽 + 已知 PC 处 ldrb r1,[r2] 直接取真值；结果 100% app 区恢复。适用：实测 STM32G0，作者宣布 F0/F1/G0/C0 可行；要求目标启动时做 CRC-over-flash 完整性校验（CRC 走 CPU 寄存器，数据不在 SRAM 的实现同样适用）。（cases/bootrom-firmware-dump/83-tracerip-stm32g0 + cases/other/136-tracerip-stm32-register-trace）",
+  "tags": [
+    "chip-family",
+    "stm32g0",
+    "non-glitch"
+  ],
+  "applicability": [
+    "stm32g0",
+    "stm32f0",
+    "stm32f1",
+    "stm32c0"
+  ],
+  "source": "cases/bootrom-firmware-dump/83-tracerip-stm32g0 + cases/other/136-tracerip-stm32-register-trace",
+  "created_at": "2026-11-15T00:00:00Z"
+}

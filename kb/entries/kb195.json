@@ -1,0 +1,17 @@
+{
+  "id": "kb195",
+  "verified": false,
+  "title": "负知识：静态估算不能当窗边界",
+  "description": "DPA 峰值/反汇编直算都只是先验，最终以扫描实测为准",
+  "detail": "三处独立证据：1) faultapp1 官方 notebook 明确承认 DPA 峰值与实测有效 offset 并不完全对应（原因 unknown）——功耗对照定位只能缩小量级，最终窗口以扫描为准（cases/voltage-glitch/04-faultapp1-lpc1114-crp）；2) BH EU 15 经验：从反汇编直算延迟失败（实际延迟比预期小），改给范围后 brute force 才成功；讲者还实测 brownout 阈值 200ns 与手册 2µs 差一个量级——'手册值也要实测'（cases/talks/22-bh-eu15-electrical-glitching）；3) 78K0 内部振荡器使绝对 offset 因芯片而异（静态表只能给等价类）（cases/secure-boot/114-bootl-attacks-ches2021）。反例（静态法成功的前提）：目标固件/自编靶可见源码且时钟同步（fault101 教程、GRIT）——静态计算给出的循环周期数（trig_count）是量窗工具而非窗边界（kb112）。操作纪律：先验→扫描验证→二分定边界（kb106），三者顺序不可颠倒。",
+  "tags": [
+    "negative-knowledge",
+    "windowing",
+    "methodology"
+  ],
+  "applicability": [
+    "通用"
+  ],
+  "source": "cases/voltage-glitch/04-faultapp1-lpc1114-crp + cases/talks/22-bh-eu15-electrical-glitching + cases/secure-boot/114-bootl-attacks-ches2021",
+  "created_at": "2026-11-15T00:00:00Z"
+}

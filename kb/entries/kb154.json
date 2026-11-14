@@ -1,0 +1,20 @@
+{
+  "id": "kb154",
+  "verified": false,
+  "title": "TI CCxxxx 家族：CC2510 已绕过、CC2541 未绕过",
+  "description": "ChipCon 调试协议的毛格 dump 与失败边界",
+  "detail": "1) CC2510 成功——Pico DMA 波形表（wavetable）毛格：粗扫 middle-out（178003±75，6 采样宽）×10000 迭代定位两个毛格点，最终 locations=[(33733,6),(178005,6)]（≈130µs 与 690µs，指令交换时序敏感段）；判定=READ_STATUS 应答出现 0xb2 后逐字节读 flash，断点续传 dump 32KB（cases/voltage-glitch/42-cc253x-crowbar）；2) CC2541 失败（负知识 kb193）——GIAnT 对照实验：blink 法找最小毛格宽度（50ns 起效、90ns 即复位），RESET_N 下降沿触发；结果=读保护未绕过，出现'调试状态损坏'与'flash 被擦除'两类副作用（cases/voltage-glitch/41-nrf52-crowbar）；3) 方法推广未验证——作者称方法可推广至 CC253x/CC254x 等，未在仓库内直接验证（cases/voltage-glitch/42）；4) 简单链生态——KULeuven SimpleLink-FI notebooks 为官方演示参照（cases/emfi/44-picoemp 引用）。",
+  "tags": [
+    "chip-family",
+    "cc2510",
+    "cc2541",
+    "negative-knowledge"
+  ],
+  "applicability": [
+    "cc2510",
+    "cc253x",
+    "cc254x"
+  ],
+  "source": "cases/voltage-glitch/42-cc253x-crowbar + cases/voltage-glitch/41-nrf52-crowbar + cases/emfi/44-picoemp",
+  "created_at": "2026-11-15T00:00:00Z"
+}

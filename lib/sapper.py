@@ -49,13 +49,12 @@ _UNSET = object()
 # Hardware-research fact kinds (domain map §1). A typed fact carries
 # structured `data` (key=value scalars) so devices/interfaces/glitch results
 # can be counted, deduped and cross-referenced instead of buried in prose.
-# NOTE: "flag" below is transitional — it only keeps the old CTF flag ledger
-# writable until the finding-ledger rework (A3) retires the kind.
+# The finding ledger (cmd_finding) records kind=glitch_result facts whose
+# data carries the ledger lifecycle keys (value/challenge/status).
 FACT_KINDS = (
     "device", "chip", "board", "interface", "firmware_image", "probe_point",
     "vulnerability", "glitch_param", "glitch_result", "scan_campaign",
     "power_profile", "analysis_note", "repro_confirmed",
-    "flag",  # transitional: removed together with the finding-ledger rework
 )
 DATA_KEY_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
 
@@ -641,19 +640,24 @@ class Store:
             atomic_write_json(self.hints_dir / f"{hid}.json", hint)
             return hint
 
-    def update_flag_fact(self, fid: str, status: str, result_note: str | None) -> dict:
-        """Lifecycle update for a flag fact: recorded -> submitted/rejected.
+    def update_finding_fact(self, fid: str, status: str, result_note: str | None) -> dict:
+        """Lifecycle update for a finding fact: observed -> confirmed/rejected.
 
-        Facts are immutable by convention; flags are the one exception because
-        their submission status changes after the fact is written (crash-safe:
-        the capture is recorded first, the platform reply second)."""
+        Facts are immutable by convention; findings are the one exception
+        because their verification status changes after the fact is written
+        (crash-safe: the observation is recorded first, the verifier's verdict
+        second). Only ledger-created findings qualify — a finding fact is a
+        glitch_result that carries the ledger's `value` + `status` keys;
+        plain glitch_result facts from dispatch are never mutable.
+        """
         with self.locked():
             fact = self.get_fact(fid)
-            if fact.get("kind") != "flag":
-                raise FGError(f"fact {fid} is not a flag fact")
-            if status not in ("recorded", "submitted", "rejected", "duplicate"):
-                raise FGError(f"invalid flag status {status!r}")
-            data = dict(fact.get("data") or {})
+            data0 = fact.get("data") or {}
+            if fact.get("kind") != "glitch_result" or "value" not in data0 or "status" not in data0:
+                raise FGError(f"fact {fid} is not a finding fact")
+            if status not in ("observed", "confirmed", "rejected"):
+                raise FGError(f"invalid finding status {status!r}")
+            data = dict(data0)
             data["status"] = status
             if result_note:
                 data["result"] = result_note
@@ -1045,14 +1049,17 @@ def render_status(store: Store) -> str:
         if k:
             typed[k] = typed.get(k, 0) + 1
     if typed:
-        summary = ", ".join(f"{n} {k}s" if k != "flag" else f"{n} flag(s)" for k, n in typed.items())
+        summary = ", ".join(f"{n} {k}s" for k, n in typed.items())
         lines.append(f"kinds:  {summary}")
-    flags = [f for f in g["facts"] if f.get("kind") == "flag"]
-    for f in flags:
+    findings = [
+        f for f in g["facts"]
+        if f.get("kind") == "glitch_result" and "status" in (f.get("data") or {})
+    ]
+    for f in findings:
         d = f.get("data") or {}
         ch = f" challenge={d['challenge']}" if d.get("challenge") else ""
         lines.append(
-            f"flag:   {f['id']} status={d.get('status', 'recorded')}{ch} value={_scrub_inline(str(d.get('value', '')))[:48]}"
+            f"finding: {f['id']} status={d.get('status', 'observed')}{ch} value={_scrub_inline(str(d.get('value', '')))[:48]}"
         )
     fr = frontier(store)
     pool = []
@@ -1801,46 +1808,59 @@ def cmd_hint(args) -> int:
 
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
-# flag ledger — record/dedupe flags (becomes the nopper finding ledger; the
-# competition submission path was removed together with the arena bridge)
+# finding ledger — record/dedupe observed experimental results. The old CTF
+# flag ledger mechanics survive (dedupe + record-first + three-state
+# lifecycle) with hardware-research semantics; the competition submission
+# path was removed together with the arena bridge.
+# Dedupe key today: (challenge/campaign, data.value). RESERVED: when scan
+# campaigns land (fork-changes C1/C7), the key becomes a hash of the param
+# tuple (campaign, mode, param-tuple) so repeated successes on the same
+# parameter window dedupe without a hand-written value token.
 # --------------------------------------------------------------------------- #
 
 
-def _find_flag_fact(store: Store, value: str) -> dict | None:
+def _find_finding_fact(store: Store, value: str, campaign: str | None = None) -> dict | None:
     for f in store.list_facts():
-        if f.get("kind") != "flag":
+        if f.get("kind") != "glitch_result":
             continue
-        if (f.get("data") or {}).get("value") == value:
-            return f
+        d = f.get("data") or {}
+        if d.get("value") != value:
+            continue
+        # (challenge/campaign, value) key: a campaign-scoped lookup only
+        # matches within that campaign; a bare lookup matches any campaign
+        # (same behavior as the old flag ledger, which keyed on value alone).
+        if campaign and d.get("challenge") and d.get("challenge") != campaign:
+            continue
+        return f
     return None
 
 
-def cmd_flag(args) -> int:
+def cmd_finding(args) -> int:
     store = Store(Path(args.store))
     store.require()
     value = args.value.strip()
     if not value:
-        raise FGError("flag value cannot be empty")
-    existing = _find_flag_fact(store, value)
+        raise FGError("finding value cannot be empty")
+    campaign = (args.challenge or "").strip()
+    existing = _find_finding_fact(store, value, campaign or None)
     if existing is not None:
         d = existing.get("data") or {}
         raise FGError(
-            f"flag already recorded as {existing['id']} "
-            f"(status={d.get('status', 'recorded')}, challenge={d.get('challenge', '?')})"
+            f"finding already recorded as {existing['id']} "
+            f"(status={d.get('status', 'observed')}, challenge={d.get('challenge', '?')})"
         )
-    challenge = (args.challenge or "").strip()
-    description = f"flag captured: {value}" + (f" (challenge {challenge})" if challenge else "")
+    description = f"finding recorded: {value}" + (f" (challenge {campaign})" if campaign else "")
     fact = store.add_fact(
         description=description,
         creator=args.creator,
         source_intent=None,
-        title=args.title or "flag",
-        kind="flag",
-        data={"value": value, "challenge": challenge, "status": "recorded"},
+        title=args.title or "finding",
+        kind="glitch_result",
+        data={"value": value, "challenge": campaign, "status": "observed"},
     )
     print(f"{fact['id']} recorded")
     print("(nopper: no submission target - the recorded fact is the durable "
-          "evidence; finding export arrives with the finding ledger)")
+          "evidence; verification via verify-repro upgrades the ledger state)")
     return 0
 
 
@@ -1959,26 +1979,31 @@ def _board_summary(root: Path) -> list[dict]:
         except FGError:
             continue
         kinds: dict[str, int] = {}
-        flags_submitted = flags_recorded = 0
+        findings_confirmed = findings_observed = findings_rejected = 0
         last_activity = ""
         for f in g["facts"]:
             k = f.get("kind")
             if k:
                 kinds[k] = kinds.get(k, 0) + 1
-            if k == "flag":
-                status = (f.get("data") or {}).get("status", "recorded")
-                if status == "submitted":
-                    flags_submitted += 1
+            if k == "glitch_result" and "status" in (f.get("data") or {}):
+                # ledger-created findings carry the lifecycle status; plain
+                # glitch_result facts from dispatch never do
+                status = (f.get("data") or {}).get("status", "observed")
+                if status == "confirmed":
+                    findings_confirmed += 1
+                elif status == "rejected":
+                    findings_rejected += 1
                 else:
-                    flags_recorded += 1
+                    findings_observed += 1
             if f.get("created_at", "") > last_activity:
                 last_activity = f["created_at"]
         rows.append({
             "name": store_dir.parent.name,
             "status": g["project"]["status"],
             "goal": (g["project"]["goal"] or "")[:80],
-            "flags_submitted": flags_submitted,
-            "flags_recorded": flags_recorded,
+            "findings_confirmed": findings_confirmed,
+            "findings_observed": findings_observed,
+            "findings_rejected": findings_rejected,
             "kinds": " ".join(f"{v} {k}" for k, v in sorted(kinds.items())) or "-",
             "open_intents": len(g["open_intents"]),
             "last_activity": last_activity or "-",
@@ -1988,23 +2013,25 @@ def _board_summary(root: Path) -> list[dict]:
 
 def render_board(rows: list[dict]) -> str:
     has_worker = any("worker" in r for r in rows)
-    head = "challenge | status | flags(sub/rec) | intel | open | last activity"
+    head = "challenge | status | findings(conf/obs/rej) | intel | open | last activity"
     if has_worker:
         head += " | worker"
     lines = [head + " | goal"]
     for r in rows:
         line = (
-            f"{r['name']} | {r['status']} | {r['flags_submitted']}/{r['flags_recorded']} "
+            f"{r['name']} | {r['status']} | "
+            f"{r['findings_confirmed']}/{r['findings_observed']}/{r['findings_rejected']} "
             f"| {r['kinds']} | {r['open_intents']} | {r['last_activity']}"
         )
         if has_worker:
             line += f" | {r.get('worker', '-')}"
         lines.append(line + f" | {r['goal']}")
     lines.append(
-        "note: flags(sub/rec) = submitted/recorded-but-not-submitted; "
-        "intel = counts by kind (device chip board interface firmware_image "
-        "probe_point vulnerability glitch_param glitch_result scan_campaign "
-        "power_profile analysis_note repro_confirmed); "
+        "note: findings(conf/obs/rej) = confirmed/observed/rejected ledger "
+        "states (plain glitch_result facts without a status are not ledger "
+        "findings); intel = counts by kind (device chip board interface "
+        "firmware_image probe_point vulnerability glitch_param glitch_result "
+        "scan_campaign power_profile analysis_note repro_confirmed); "
         "worker=yes means a hired tmux worker (w-<name>) is already on it."
     )
     return "\n".join(lines)
@@ -2213,7 +2240,10 @@ def cmd_command(args) -> int:
     print("[command] final board:")
     for r in _board_summary(root):
         mark = "DONE" if r["status"] == "completed" else r["status"]
-        print(f"[command]   {r['name']}: {mark}  flags={r['flags_submitted']}/{r['flags_recorded']}")
+        print(
+            f"[command]   {r['name']}: {mark}  "
+            f"findings={r['findings_confirmed']}/{r['findings_observed']}/{r['findings_rejected']}"
+        )
     return 0
 
 
@@ -2636,7 +2666,7 @@ def _agents_system_prompt(store: Store) -> str:
         "You are an autonomous executor in a hardware-experiment fact-graph agent system.\n"
         f"The engagement-graph CLI `sapper` is available (store at {store.root}).\n"
         "Use it to read and write shared memory:\n"
-        "  sapper status                  # see project + open intents + flag ledger\n"
+        "  sapper status                  # see project + open intents + finding ledger\n"
         "  sapper graph                   # full graph (facts + intents)\n"
         "  sapper show fact <id>          # detail\n"
         "  sapper fact \"<text>\" -k <kind> -d key=value   # record a TYPED fact\n"
@@ -2660,7 +2690,7 @@ def _agents_system_prompt(store: Store) -> str:
         "      repro_confirmed: result_ref, attempts, success_rate, window_min, window_max\n"
         "    every typed fact should also set evidence_level (observation/hypothesis/unknown) "
         "and confidence (low/medium/high) — write the literal 'unknown' when unsure.\n"
-        "  sapper flag \"<value>\" -c <campaign>   # record a captured result NOW\n"
+        "  sapper finding \"<value>\" -c <campaign>   # record an observed result NOW (finding ledger)\n"
         "  sapper kb search \"<keywords>\"                       # offline technique kb\n"
         "  sapper kb show <kb-id>                               # full kb entry (methods+commands)\n"
         "  sapper done <intent> --fact \"<text>\" -k <kind> -d key=value  # conclude an intent\n"
@@ -4311,13 +4341,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 
     sp = sub.add_parser(
-        "flag", help="record a captured result/finding (dedupe; export later)"
+        "finding", aliases=["flag"],  # flag: one-layer compat alias (A3)
+        help="record an observed experimental result (dedupe; finding ledger; "
+             "verify-repro upgrades observed -> confirmed/rejected)",
     )
-    sp.add_argument("value", help="the finding value, e.g. flag{...} or a result token")
+    sp.add_argument("value", help="the finding value, e.g. a result token or param-tuple hash")
     sp.add_argument("--challenge", "-c", default=None, help="campaign id (optional)")
     sp.add_argument("--title", "-t", default=None)
     sp.add_argument("--creator", default="user")
-    sp.set_defaults(func=cmd_flag)
+    sp.set_defaults(func=cmd_finding)
 
     sp = sub.add_parser(
         "kb", help="shared offline knowledge base (techniques / CVEs / writeups)"

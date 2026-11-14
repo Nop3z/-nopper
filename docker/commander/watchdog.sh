@@ -165,10 +165,12 @@ QUOTA_RE='insufficient|balance|quota|exceeded|billing|payment|401|[Uu]nauthorize
 # cause of the 17:36 storm: per-minute limits were misread as a dead key)
 RATELIMIT_RE='每分钟|分钟级|rate.?limit|too many requests|429|1302|1311|1305' 
 
-# findings ledger stub (flag/arena submission removed with the platform bridge)
+# findings ledger stub (competition submission removed with the arena bridge;
+# the nopper finding ledger records results as facts and verify-repro
+# upgrades them - observed/confirmed/rejected)
 finish_flags() {  # finish_flags <code> - kept for call-site compatibility
   local code=$1
-  log "finish_flags: no submission target (arena removed) - findings stay as recorded facts for $code"
+  log "finish_flags: no submission target (nopper records only) - findings stay as recorded facts for $code"
 }
 
 # ---- trust preset (PYTRUST + settings.json, from tmux-drive.sh launch()) ----

@@ -32,7 +32,7 @@ sapper show fact <id>             # full node detail incl. title/description/doc
 sapper doc <id>                   # read the detailed doc of a fact/intent (READ THIS when you need depth)
 sapper fact "<observation>" -k <kind> -d key=value   # record a TYPED fact
 sapper done <intent-id> --fact "<result>" -k <kind> -d key=value  # finish THIS intent
-sapper flag "<value>" -c <challenge>                 # record a captured result NOW (finding ledger)
+sapper finding "<value>" -c <challenge>              # record an observed result NOW (finding ledger)
 sapper kb search "<keywords>" [-t tag]               # offline technique knowledge base
 sapper kb show <kb-id>                               # read a full kb entry (methods+commands)
 sapper hint "<note>"                                 # leave a note for the commander / human
@@ -105,7 +105,7 @@ Each node has THREE documentation layers — use them correctly:
   touch other machines in the environment.
 - Record only what you actually confirmed with a command or response. A
   scanner WARNING is not a vulnerability; verify before writing a `vulnerability` fact.
-- Record a successful result the moment you see one: `sapper flag "<value>" -c <id>`
+- Record a successful result the moment you see one: `sapper finding "<value>" -c <id>`
   IMMEDIATELY (crash-safe), then continue working.
 - Harvest as you go: every firmware dump, memory image, or extracted key
   becomes a `firmware_image` fact NOW, not later.

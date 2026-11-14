@@ -298,7 +298,7 @@ class TypedFactTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.store = sapper.Store(Path(self.tmp.name) / ".sapper")
-        self.store.init("test", "capture the flag")
+        self.store.init("test", "glitch the boot rom")
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -414,46 +414,91 @@ class EvidenceLevelSoftWarningTests(unittest.TestCase):
         self.assertIn("evidence_level", text)
 
 
-class FlagLedgerTests(unittest.TestCase):
+class FindingLedgerTests(unittest.TestCase):
+    """A3: the finding ledger keeps the flag-ledger mechanics (dedupe +
+    record-first + lifecycle) with hardware semantics: kind=glitch_result,
+    dedupe key (challenge/campaign, data.value), states observed/confirmed/rejected."""
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.store = sapper.Store(Path(self.tmp.name) / ".sapper")
-        self.store.init("test", "capture the flag")
+        self.store.init("test", "glitch the boot rom")
 
     def tearDown(self):
         self.tmp.cleanup()
 
-    def test_flag_record_and_dedupe(self):
+    def test_finding_record_and_dedupe(self):
         fact = self.store.add_fact(
-            "flag captured: flag{a}", "agent",
-            kind="flag", data={"value": "flag{a}", "challenge": "c01", "status": "recorded"},
+            "finding recorded: ext_offset=47 width=32 skip", "agent",
+            kind="glitch_result",
+            data={"value": "ext_offset=47 width=32 skip", "challenge": "c01", "status": "observed"},
         )
-        dup = sapper._find_flag_fact(self.store, "flag{a}")
+        dup = sapper._find_finding_fact(self.store, "ext_offset=47 width=32 skip")
         self.assertEqual(dup["id"], fact["id"])
-        self.assertIsNone(sapper._find_flag_fact(self.store, "flag{b}"))
+        self.assertIsNone(
+            sapper._find_finding_fact(self.store, "a different result"))
 
-    def test_flag_status_lifecycle_and_type_guard(self):
-        fact = self.store.add_fact(
-            "flag captured: flag{a}", "agent",
-            kind="flag", data={"value": "flag{a}", "status": "recorded"},
+    def test_finding_dedupe_campaign_scoped(self):
+        self.store.add_fact(
+            "finding recorded: r1", "agent",
+            kind="glitch_result",
+            data={"value": "r1", "challenge": "c01", "status": "observed"},
         )
-        updated = self.store.update_flag_fact(fact["id"], "submitted", '{"ok":true}')
-        self.assertEqual(updated["data"]["status"], "submitted")
-        self.assertEqual(updated["data"]["result"], '{"ok":true}')
+        self.assertIsNotNone(
+            sapper._find_finding_fact(self.store, "r1", campaign="c01"))
+        self.assertIsNone(
+            sapper._find_finding_fact(self.store, "r1", campaign="c02"))
+
+    def test_finding_status_lifecycle_and_type_guard(self):
+        fact = self.store.add_fact(
+            "finding recorded: r1", "agent",
+            kind="glitch_result", data={"value": "r1", "status": "observed"},
+        )
+        updated = self.store.update_finding_fact(fact["id"], "confirmed", '{"rate":0.4}')
+        self.assertEqual(updated["data"]["status"], "confirmed")
+        self.assertEqual(updated["data"]["result"], '{"rate":0.4}')
         plain = self.store.add_fact("just text", "agent")
         with self.assertRaises(sapper.FGError):
-            self.store.update_flag_fact(plain["id"], "submitted", None)
+            self.store.update_finding_fact(plain["id"], "confirmed", None)
+        # a dispatch-produced glitch_result without ledger keys is protected too
+        bare = self.store.add_fact(
+            "batch result", "agent", kind="glitch_result",
+            data={"outcome": "crash", "attempts": "20"},
+        )
         with self.assertRaises(sapper.FGError):
-            self.store.update_flag_fact(fact["id"], "hacked-status", None)
+            self.store.update_finding_fact(bare["id"], "confirmed", None)
+        with self.assertRaises(sapper.FGError):
+            self.store.update_finding_fact(fact["id"], "hacked-status", None)
+        with self.assertRaises(sapper.FGError):
+            self.store.update_finding_fact(fact["id"], "submitted", None)
 
-    def test_status_shows_flag_ledger(self):
+    def test_cmd_finding_records_glitch_result_fact(self):
+        args = type("A", (), {
+            "store": str(self.store.root),
+            "value": "ext_offset=47 width=32 skip",
+            "challenge": "c01", "title": None, "creator": "agent",
+        })()
+        import io, contextlib
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            rc = sapper.cmd_finding(args)
+        self.assertEqual(rc, 0)
+        fact = sapper._find_finding_fact(self.store, "ext_offset=47 width=32 skip")
+        self.assertEqual(fact["kind"], "glitch_result")
+        self.assertEqual(fact["data"]["status"], "observed")
+        # second identical record is rejected (dedupe)
+        with self.assertRaises(sapper.FGError):
+            sapper.cmd_finding(args)
+
+    def test_status_shows_finding_ledger(self):
         self.store.add_fact(
-            "flag captured: flag{z}", "agent",
-            kind="flag", data={"value": "flag{z}", "challenge": "c09", "status": "submitted"},
+            "finding recorded: r9", "agent",
+            kind="glitch_result",
+            data={"value": "r9", "challenge": "c09", "status": "confirmed"},
         )
         text = sapper.render_status(self.store)
-        self.assertIn("flag(s)", text)
-        self.assertIn("status=submitted", text)
+        self.assertIn("finding:", text)
+        self.assertIn("status=confirmed", text)
         self.assertIn("challenge=c09", text)
 
 
@@ -503,18 +548,23 @@ class CommanderTests(unittest.TestCase):
             root = Path(tmp)
             for name in ("c01", "c02"):
                 store = sapper.Store(root / name / ".sapper")
-                store.init("t", f"flag {name}")
+                store.init("t", f"experiment {name}")
             sapper.Store(root / "c01" / ".sapper").add_fact(
-                "flag captured: flag{a}", "agent",
-                kind="flag", data={"value": "flag{a}", "challenge": "c01", "status": "submitted"})
+                "finding recorded: r1", "agent",
+                kind="glitch_result",
+                data={"value": "r1", "challenge": "c01", "status": "confirmed"})
+            sapper.Store(root / "c02" / ".sapper").add_fact(
+                "batch result", "agent", kind="glitch_result",
+                data={"outcome": "crash"})  # no ledger keys: not a finding
             rows = sapper._board_summary(root)
             self.assertEqual([r["name"] for r in rows], ["c01", "c02"])
             by_name = {r["name"]: r for r in rows}
-            self.assertEqual(by_name["c01"]["flags_submitted"], 1)
-            self.assertEqual(by_name["c02"]["flags_submitted"], 0)
+            self.assertEqual(by_name["c01"]["findings_confirmed"], 1)
+            self.assertEqual(by_name["c02"]["findings_confirmed"], 0)
+            self.assertEqual(by_name["c02"]["findings_observed"], 0)
             board = sapper.render_board(rows)
             self.assertIn("c01", board)
-            self.assertIn("flags(sub/rec)", board)
+            self.assertIn("findings(conf/obs/rej)", board)
 
 
 class FleetTests(unittest.TestCase):
@@ -578,9 +628,12 @@ class HireFireTests(unittest.TestCase):
 
     def test_board_render_worker_column(self):
         rows = [
-            {"name": "c01", "status": "active", "flags_submitted": 1, "flags_recorded": 0,
-             "kinds": "1 flag", "open_intents": 2, "last_activity": "t", "goal": "g", "worker": "yes"},
-            {"name": "c02", "status": "active", "flags_submitted": 0, "flags_recorded": 0,
+            {"name": "c01", "status": "active",
+             "findings_confirmed": 1, "findings_observed": 0, "findings_rejected": 0,
+             "kinds": "1 glitch_result", "open_intents": 2, "last_activity": "t",
+             "goal": "g", "worker": "yes"},
+            {"name": "c02", "status": "active",
+             "findings_confirmed": 0, "findings_observed": 0, "findings_rejected": 0,
              "kinds": "-", "open_intents": 0, "last_activity": "t", "goal": "g", "worker": "-"},
         ]
         board = sapper.render_board(rows)

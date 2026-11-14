@@ -56,11 +56,12 @@ die() { local rc=$1; shift; printf '[worker] ERROR: %s\n' "$*" >&2; exit "$rc"; 
 is_code() { [[ "$1" =~ ^[A-Za-z0-9][A-Za-z0-9_.:-]*$ ]]; }
 window_exists() { tmux list-windows -t "$SESSION" -F '#W' 2>/dev/null | grep -qx -- "$1"; }
 
-# ---- findings ledger stub (flag/arena submission removed with the platform
-#      bridge; nopper finding ledger + hwctl own experiment closing) --------
+# ---- findings ledger stub (competition submission removed with the arena
+#      bridge; the nopper finding ledger records results as facts and
+#      verify-repro upgrades them - observed/confirmed/rejected) ------------
 finish_flags() {  # finish_flags <code> - kept for call-site compatibility
   local code=$1
-  log "finish_flags: no submission target (arena removed) - findings stay as recorded facts for $code"
+  log "finish_flags: no submission target (nopper records only) - findings stay as recorded facts for $code"
 }
 
 

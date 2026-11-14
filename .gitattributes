@@ -1,2 +1,5 @@
 # nopper: keep shell scripts LF so WSL/docker execution and bash -n always work
 *.sh text eol=lf
+
+# normalize text files (prevents CRLF phantom-modified churn)
+* text=auto

@@ -4,16 +4,16 @@ set -euo pipefail
 
 # ===== 1. 模型网关（绕过 OAuth 登录的核心）=====
 # 指挥官/智能档 = GLM；干活/便宜档 = DeepSeek-V4.1-Flash（经同一网关，模型名由网关决定）
-GATEWAY_URL="<你的网关地址，如 https://xxx>"        # ← 填这里
-GATEWAY_KEY="<你的网关 key>"                       # ← 填这里
+GATEWAY_URL="https://api.commandcode.ai/provider"   # Command Code anthropic 网关（DSH cordis.patch.yml 同源）
+GATEWAY_KEY="<COMMANDCODE_API_KEY，见 DSH .credentials.yaml refs 段>"  # ← 填这里
 
 cat >> "$HOME/.bashrc" <<'EOF'
 
 # ---- nopper gateway (added by setup-wsl-nopper.sh) ----
 export ANTHROPIC_BASE_URL="__GW_URL__"
 export ANTHROPIC_AUTH_TOKEN="__GW_KEY__"
-export NOPPER_MODEL="glm-5.3"                 # 智能档（指挥官/固件分析师/知识管理员）
-export NOPPER_MODEL_FLASH="deepseek-v4.1-flash"  # 便宜档（侦察/毛刺操作员/验证员）
+export NOPPER_MODEL="zai-org/GLM-5.3"                 # 智能档（指挥官/固件分析师/知识管理员）
+export NOPPER_MODEL_FLASH="deepseek/deepseek-v4.1-flash"  # 便宜档（侦察/毛刺操作员/验证员）
 # 多 key 轮换池（JSON 数组，可选）：export NOPPER_KEY_POOL='[{"base_url":"...","token":"...","model":"..."}]'
 export CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
 export DISABLE_TELEMETRY=1 DISABLE_ERROR_REPORTING=1 DISABLE_AUTOUPDATER=1

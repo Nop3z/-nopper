@@ -19,8 +19,8 @@
 |---|---|---|
 | `ANTHROPIC_BASE_URL` | `https://open.bigmodel.cn/api/anthropic` | 直连厂商公开端点 |
 | `ANTHROPIC_AUTH_TOKEN` | 你的 API Key | 换供应商只改这项和 BASE_URL |
-| `NOPPER_MODEL` | `glm-5.3` | 智能档（战役指挥官/固件分析师/知识管理员：调度思考抉择）。由 docker/setup-wsl-nopper.sh 预置 |
-| `NOPPER_MODEL_FLASH` | `deepseek-v4.1-flash` | 便宜档（侦察分析员/毛刺操作员/验证员：干活量产），同一网关 |
+| `NOPPER_MODEL` | `zai-org/GLM-5.3` | 智能档（战役指挥官/固件分析师/知识管理员：调度思考抉择）。已实测走通（commandcode 网关，anthropic 协议）。由 docker/setup-wsl-nopper.sh 预置 |
+| `NOPPER_MODEL_FLASH` | `deepseek/deepseek-v4.1-flash` | 便宜档（侦察分析员/毛刺操作员/验证员：干活量产），同一网关 |
 
 ### Key 池自动轮换（强烈建议配置）
 

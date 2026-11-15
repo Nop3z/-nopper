@@ -2757,7 +2757,7 @@ def _dispatch_explore(store, templates_dir, intent, model, timeout, skip, cwd, a
             "tool use; pass --skip-permissions for autonomous runs.\n"
         )
     worker = _worker_id(model)
-    tpl = _load_template(templates_dir, "explore.md")
+    tpl = _load_template(templates_dir, "capture.md")
     prompt = render_intent_prompt(store, tpl, intent)
     if args.dry_run:
         print(prompt)
@@ -2788,7 +2788,7 @@ def _dispatch_verify(store, templates_dir, model, timeout, skip, cwd, args) -> i
     if intent["to"] is None:
         raise FGError(f"intent {args.intent} not concluded yet")
     fact = store.get_fact(intent["to"])
-    tpl = _load_template(templates_dir, "verify.md")
+    tpl = _load_template(templates_dir, "verify_repro.md")
     prompt = _replace_placeholders(tpl, {
         "intent_description": _scrub_inline(intent["description"]),
         "result_description": _scrub_inline(fact["description"]),
@@ -3679,7 +3679,7 @@ def _run_explore_raw(store, templates_dir, intent, model, timeout, skip, cwd, cl
             f"intent {intent['id']} requires confirmation; run `nopper confirm {intent['id']}` first"
         )
     worker = _worker_id(model)
-    tpl = _load_template(templates_dir, "explore.md")
+    tpl = _load_template(templates_dir, "capture.md")
     prompt = render_intent_prompt(store, tpl, intent)
     if claim:
         store.claim_intent(intent["id"], worker)
@@ -3698,7 +3698,7 @@ def _run_explore_raw(store, templates_dir, intent, model, timeout, skip, cwd, cl
 
 def _run_verify_raw(store, templates_dir, intent, model, timeout, skip, cwd) -> tuple[bool, str]:
     fact = store.get_fact(intent["to"])
-    tpl = _load_template(templates_dir, "verify.md")
+    tpl = _load_template(templates_dir, "verify_repro.md")
     prompt = _replace_placeholders(tpl, {
         "intent_description": _scrub_inline(intent["description"]),
         "result_description": _scrub_inline(fact["description"]),

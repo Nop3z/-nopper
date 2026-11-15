@@ -1,0 +1,21 @@
+{
+  "schema": "hwctl.safety-domain-v0",
+  "comment": "安全域缺省档（随包只读样例）。现场以 ./safety-domain.json 覆盖；该类文件对 Agent 只读（条令约定：hwctl 代码不提供任何写入接口）。数值为 OSR-303/STM32 台架的保守起点，逐台架人工定值。",
+  "v_target_max_mv": 3300,
+  "max_pulse_raw": 100,
+  "pattern_max_segments": 8,
+  "pattern_max_total_ns": 2000000,
+  "sense_ohms": 50.0,
+  "max_energy_uj": 500.0,
+  "max_consecutive_crash": 20,
+  "shot_budget": 10000,
+  "unit_scale_ns": 10,
+  "xor_invariants": [
+    {
+      "name": "example.reg32-flip-lowbyte",
+      "source": 4294967295,
+      "target": 4294967040,
+      "bit_mask_on_reg_value": 255
+    }
+  ]
+}

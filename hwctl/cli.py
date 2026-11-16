@@ -20,6 +20,7 @@ import argparse
 import importlib
 import json
 import os
+import subprocess
 import sys
 from typing import Any
 
@@ -51,6 +52,14 @@ DEVICE_PROBES: tuple[tuple[str, str, str], ...] = (
 DEFAULT_MATCH_BYTES = "AABBCC"  # tool-integration.md §3.1 明文标识示例
 
 
+def _usb_vid_present(vid: str) -> bool:
+    """Windows: 检查指定 VID 的 USB 设备是否已连接（pnputil）。"""
+    try:
+        out = subprocess.run(["pnputil", "/enum-devices", "/connected"], capture_output=True, text=True, timeout=60, shell=True)
+        return ("VID_" + vid.upper()) in (out.stdout + out.stderr).upper()
+    except Exception:  # noqa: BLE001
+        return False
+
 def probe_devices(port: str | None = None) -> list[dict[str, Any]]:
     """设备探测：逐包延迟 import；--port 提供时对 power_shorter 做真实打开+state 读取。"""
     found: list[dict[str, Any]] = []
@@ -81,6 +90,18 @@ def probe_devices(port: str | None = None) -> list[dict[str, Any]]:
         else:
             entry["detail"] = "真机设备枚举 TODO(P0/P1)：需打开 COM/HID 逐台确认"
         found.append(entry)
+    # Glasgow: USB 设备级探测（VID 1d50 Glasgow Interface Explorer；不需要 python 包）
+    try:
+        if _usb_vid_present("1D50") or _usb_vid_present("20B7"):
+            found.append({
+                "kind": "rig",
+                "module": "glasgow",
+                "label": "Glasgow Interface Explorer",
+                "status": "usb-connected",
+                "detail": "USB 可见（OSR-Glasgow 固件 VID_20B7 或原版 1D50；python 包 glasgow 未装，CLI 层 TODO）",
+            })
+    except Exception:  # noqa: BLE001
+        pass
     return found
 
 def cmd_devices(args: argparse.Namespace) -> int:

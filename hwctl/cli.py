@@ -49,6 +49,17 @@ DEVICE_PROBES: tuple[tuple[str, str, str], ...] = (
     ("shub_ctrl", "pwr", "OSR_Smart_HUB"),
 )
 
+
+#: last-known device ports (working config, gitignored)
+def _load_known_ports() -> dict[str, str]:
+    try:
+        raw = json.load(open(os.path.join(os.path.dirname(__file__), "devices-known.json"), encoding="utf-8"))
+        return {k: (v["port"] if isinstance(v, dict) else v) for k, v in raw.items()}
+    except Exception:  # noqa: BLE001
+        return {}
+
+_known_ports = _load_known_ports()
+
 DEFAULT_MATCH_BYTES = "AABBCC"  # tool-integration.md §3.1 明文标识示例
 
 
@@ -75,19 +86,29 @@ def probe_devices(port: str | None = None) -> list[dict[str, Any]]:
             "status": "module-available",
         }
         # 真实探测：仅 power_shorter 且显式提供 COM 口时（只读 state，不 arm/不触发）
-        if port and module_name == "power_shorter":
+        if (port or _known_ports.get(module_name)) and module_name == "power_shorter":
+            use_port = port or _known_ports.get(module_name)
             try:
-                dev = importlib.import_module("power_shorter").PowerShorter(port)
+                dev = importlib.import_module("power_shorter").PowerShorter(use_port)
                 st = {e.name: dev.state(e) for e in importlib.import_module("power_shorter").Engine}
                 entry["status"] = "connected"
-                entry["port"] = port
+                entry["port"] = use_port
                 entry["engines"] = st
                 entry["detail"] = "real-device state probe (read-only)"
             except Exception as exc:  # noqa: BLE001 —— 打不开如实报告
                 entry["status"] = "open-failed"
-                entry["port"] = port
+                entry["port"] = use_port
                 entry["detail"] = f"{type(exc).__name__}: {exc}"
-        else:
+        if module_name == "pico3000":
+            try:
+                serials = importlib.import_module("pico3000").list_devices()
+                if serials:
+                    entry["status"] = "connected"
+                    entry["serials"] = serials
+                    entry["detail"] = "real-device probe (list_devices, read-only)"
+            except Exception as exc:  # noqa: BLE001
+                entry["detail"] = f"pico3000 probe failed: {type(exc).__name__}: {exc}"
+        elif module_name in ("uart_guarder", "shub_ctrl"):
             entry["detail"] = "真机设备枚举 TODO(P0/P1)：需打开 COM/HID 逐台确认"
         found.append(entry)
     # Glasgow: USB 设备级探测（VID 1d50 Glasgow Interface Explorer；不需要 python 包）

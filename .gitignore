@@ -30,3 +30,12 @@ HANDOVER.md
 PREP-INTERVIEW.md
 docker/ENV-COMMANDER.md
 COMMANDER-HANDOVER.md
+
+# nopper working artifacts (site-specific, never public)
+hwctl/devices-known.json
+scan-ledger*.csv
+hwctl-audit*.jsonl
+.nopper/
+.pytest_cache/
+grid-*.json
+shot-*.csv

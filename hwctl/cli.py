@@ -51,26 +51,40 @@ DEVICE_PROBES: tuple[tuple[str, str, str], ...] = (
 DEFAULT_MATCH_BYTES = "AABBCC"  # tool-integration.md §3.1 明文标识示例
 
 
-def probe_devices() -> list[dict[str, Any]]:
-    """设备探测：逐包延迟 import；未安装/不可用即不列（无设备 -> 空列表）。"""
+def probe_devices(port: str | None = None) -> list[dict[str, Any]]:
+    """设备探测：逐包延迟 import；--port 提供时对 power_shorter 做真实打开+state 读取。"""
     found: list[dict[str, Any]] = []
     for module_name, layer, label in DEVICE_PROBES:
         try:
             importlib.import_module(module_name)
         except Exception:  # noqa: BLE001 —— import 侧失败一律视为无此设备
             continue
-        found.append({
+        entry: dict[str, Any] = {
             "kind": layer,
             "module": module_name,
             "label": label,
             "status": "module-available",
-            "detail": "真机设备枚举 TODO(P0/P1)：需打开 COM/HID 逐台确认",
-        })
+        }
+        # 真实探测：仅 power_shorter 且显式提供 COM 口时（只读 state，不 arm/不触发）
+        if port and module_name == "power_shorter":
+            try:
+                dev = importlib.import_module("power_shorter").PowerShorter(port)
+                st = {e.name: dev.state(e) for e in importlib.import_module("power_shorter").Engine}
+                entry["status"] = "connected"
+                entry["port"] = port
+                entry["engines"] = st
+                entry["detail"] = "real-device state probe (read-only)"
+            except Exception as exc:  # noqa: BLE001 —— 打不开如实报告
+                entry["status"] = "open-failed"
+                entry["port"] = port
+                entry["detail"] = f"{type(exc).__name__}: {exc}"
+        else:
+            entry["detail"] = "真机设备枚举 TODO(P0/P1)：需打开 COM/HID 逐台确认"
+        found.append(entry)
     return found
 
-
 def cmd_devices(args: argparse.Namespace) -> int:
-    print(json.dumps(probe_devices(), ensure_ascii=False, indent=2))
+    print(json.dumps(probe_devices(getattr(args, "port", None)), ensure_ascii=False, indent=2))
     return 0
 
 
@@ -187,7 +201,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_scan.add_argument("--match-bytes", default=DEFAULT_MATCH_BYTES, help="UartGuarder 匹配串（hex）")
     p_scan.set_defaults(func=cmd_scan)
 
-    p_dev = sub.add_parser("devices", help="设备探测（无设备返回空列表）")
+    p_dev = sub.add_parser("devices", help="设备探测（--port COM19 对 power_shorter 做真实探测）")
+    p_dev.add_argument("--port", default=None, help="power_shorter 的 COM 口（如 COM19）")
     p_dev.set_defaults(func=cmd_devices)
     return parser
 
